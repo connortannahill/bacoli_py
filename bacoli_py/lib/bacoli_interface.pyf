@@ -1,0 +1,155 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module bacoli__user__routines 
+    interface f
+        subroutine f(t, x, u, ux, uxx, fval, npde)
+            integer,intent(in, hide) :: npde
+            double precision,intent(in) :: t
+            double precision,intent(in) :: x
+            double precision,dimension(npde),intent(in) :: u
+            double precision,dimension(npde),intent(in) :: ux
+            double precision,dimension(npde),intent(in) :: uxx
+            double precision,dimension(npde),intent(in,out) :: fval
+        end subroutine f
+    end interface f
+
+    interface fvec
+        subroutine fvec(t, x, u, ux, uxx, fval, vnpts, npde)
+            double precision,intent(in) :: t
+            double precision,dimension(vnpts),intent(in) :: x
+            double precision,dimension(vnpts*npde),intent(in) :: u
+            double precision,dimension(vnpts*npde),intent(in) :: ux
+            double precision,dimension(vnpts*npde),intent(in) :: uxx
+            double precision,dimension(vnpts*npde),intent(in,out) :: fval
+            integer,intent(in) :: vnpts
+            integer,intent(in) :: npde
+        end subroutine fvec
+    end interface fvec
+
+    interface derivf
+        subroutine derivf(t, x, u, ux, uxx, dfdu, dfdux, dfduxx, npde)
+            integer,intent(in, hide) :: npde
+            double precision,intent(in) :: t
+            double precision,intent(in) :: x
+            double precision,dimension(npde),intent(in) :: u
+            double precision,dimension(npde),intent(in) :: ux
+            double precision,dimension(npde),intent(in) :: uxx
+            double precision,dimension(npde,npde),intent(in,out,copy) :: dfdu
+            double precision,dimension(npde,npde),intent(in,out,copy) :: dfdux
+            double precision,dimension(npde,npde),intent(in,out,copy) :: dfduxx
+        end subroutine derivf
+    end interface derivf
+
+    interface bndxa
+        subroutine bndxa(t, u, ux, bval, npde)
+            integer,intent(in, hide) :: npde
+            double precision,intent(in) :: t
+            double precision,dimension(npde),intent(in) :: u
+            double precision,dimension(npde),intent(in) :: ux
+            double precision,dimension(npde),intent(in,out) :: bval
+        end subroutine bndxa
+    end interface bndxa
+
+    interface bndxb
+        subroutine bndxb(t, u, ux, bval, npde)
+            integer,intent(in, hide) :: npde
+            double precision,intent(in) :: t
+            double precision,dimension(npde),intent(in) :: u
+            double precision,dimension(npde),intent(in) :: ux
+            double precision,dimension(npde),intent(in,out) :: bval
+        end subroutine bndxb
+    end interface bndxb
+    
+    interface difbxa
+        subroutine difbxa(t, u, ux, dbdu, dbdux, dbdt, npde)
+            integer,intent(in, hide) :: npde
+            double precision,intent(in) :: t
+            double precision,dimension(npde),intent(in) :: u
+            double precision,dimension(npde),intent(in) :: ux
+            double precision,dimension(npde,npde),intent(in,out,copy) :: dbdu
+            double precision,dimension(npde,npde),intent(in,out,copy) :: dbdux
+            double precision,dimension(npde,npde),intent(in,out,copy) :: dbdt
+        end subroutine difbxa
+    end interface difbxa
+
+    interface difbxb
+        subroutine difbxb(t, u, ux, dbdu, dbdux, dbdt, npde)
+            integer,intent(in, hide) :: npde
+            double precision,intent(in) :: t
+            double precision,dimension(npde),intent(in) :: u
+            double precision,dimension(npde),intent(in) :: ux
+            double precision,dimension(npde,npde),intent(in,out,copy) :: dbdu
+            double precision,dimension(npde,npde),intent(in,out,copy) :: dbdux
+            double precision,dimension(npde,npde),intent(in,out,copy) :: dbdt
+        end subroutine difbxb
+    end interface difbxb
+
+    interface uinit
+        subroutine uinit(x, u, npde)
+            integer,intent(in, hide) :: npde
+            double precision,intent(in) :: x
+            double precision,dimension(npde),intent(in,out) :: u
+        end subroutine uinit
+    end interface 
+end python module bacoli__user__routines 
+
+python module bacoli_interface ! in 
+    interface  ! in :bacoli_interface
+        module bacoli_interface ! in :bacoli_interface:bacoli_interface.f95
+
+            subroutine initialize(npde,nint_max,kcol,s_est,t_est,maxord,is_maxord,atol,atol_size,rtol,rtol_size,t0,x,x_size,xspan,xspan_size,dirichlet,ini_ss,is_ini_ss,tstop,is_tstop,idid) ! in :bacoli_interface:bacoli_interface.f95:bacoli_interface
+                integer intent(in) :: npde
+                integer intent(in) :: nint_max
+                integer intent(in) :: kcol
+                integer intent(in) :: s_est
+                integer intent(in) :: t_est
+                integer intent(in) :: maxord
+                logical intent(in) :: is_maxord
+                double precision dimension(atol_size),intent(in) :: atol
+                integer, optional,intent(hide),depend(atol) :: atol_size=len(atol)
+                double precision dimension(rtol_size),intent(in) :: rtol
+                integer, optional,intent(hide),depend(rtol) :: rtol_size=len(atol)
+                double precision intent(in) :: t0
+                double precision dimension(x_size),intent(in) :: x
+                integer, optional,intent(hide),depend(x) :: x_size=len(x)
+                double precision dimension(xspan_size),intent(in) :: xspan
+                integer, optional,intent(in),check(len(xspan)>=xspan_size),depend(xspan) :: xspan_size=len(xspan)
+                integer intent(in) :: dirichlet
+                double precision intent(in) :: ini_ss
+                logical intent(in) :: is_ini_ss
+                double precision intent(in) :: tstop
+                logical intent(in) :: is_tstop
+                integer intent(out) :: idid
+            end subroutine initialize
+            subroutine solve(tout,f,fvec,bndxa,bndxb,uinit,derivf,is_derivf,difbxa,is_difbxa,difbxb,is_difbxb,idid) ! in :bacoli_interface:bacoli_interface.f95:bacoli_interface
+                use bacoli__user__routines
+                double precision intent(in) :: tout
+                external f
+                external fvec
+                external bndxa
+                external bndxb
+                external uinit
+                external derivf
+                logical intent(in) :: is_derivf
+                external difbxa
+                logical intent(in) :: is_difbxa
+                external difbxb
+                logical intent(in) :: is_difbxb
+                integer intent(out) :: idid
+            end subroutine solve
+            subroutine vals(u,ux,npde,xspan_size,nderiv) ! in :bacoli_interface:bacoli_interface.f95:bacoli_interface
+                double precision dimension(npde,xspan_size),intent(out),depend(npde,xspan_size) :: u
+                double precision dimension(npde,xspan_size),intent(out),depend(npde,xspan_size) :: ux
+                integer intent(in) :: npde
+                integer intent(in) :: xspan_size
+                integer intent(in) :: nderiv
+            end subroutine vals
+            subroutine sol_teardown ! in :bacoli_interface:bacoli_interface.f95:bacoli_interface
+            end subroutine sol_teardown
+        end module bacoli_interface
+    end interface 
+end python module bacoli_interface
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
