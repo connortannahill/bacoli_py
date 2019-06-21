@@ -9,7 +9,6 @@
 *.so
 *.vscode
 *.html
-*.txt
 *.js
 *.pickle
 *.c
