@@ -12,7 +12,7 @@ import numpy
 from numpy import tanh
 
 # Initialize the BacoliPy object.
-solver = bacoli_py.BacoliPy()
+solver = bacoli_py.BacoliPy(t_est = 'r')
 
 # Specify the number of PDE's in this system.
 npde = 1

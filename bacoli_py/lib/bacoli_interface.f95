@@ -40,6 +40,8 @@ module type_interface
 
         double precision, pointer :: output_mem_utemp(:,:,:)
 
+        logical                   :: gen_mesh
+
     end type
 end module type_interface
 
@@ -265,6 +267,10 @@ module bacoli_interface
             external                        difbxb
             external                        bacoli
             external                        bacolri
+            external                        meshgen
+            double precision              :: xa, xb
+            double precision, allocatable :: wm(:), xi(:)
+            integer                       :: ier, i
  
             ! Set flags about whether or not to use finite differences.
             use_fd_both = (.not. is_derivf) .and. ((.not. is_difbxa) &
@@ -273,6 +279,33 @@ module bacoli_interface
                 .or. (.not. is_difbxb))
             use_fd_pde = (.not. is_derivf) .and. is_difbxa .and.     &
                 is_difbxb
+
+            if (sol%mflag(1) == 0 .and. sol%gen_mesh) then
+                write(*,*) 'in sol using generated mesh'
+                ! Extract endpoints
+                xa = sol%x(1)
+                xb = sol%x(2)
+
+                ! User-supplied mesh case
+                allocate(wm((sol%nint+1)+3*sol%npde), stat=ier)
+
+                allocate(xi(sol%nint+1), stat=ier)
+
+                do i = 1, sol%nint+1
+                    xi(i) = xa + (xb - xa)*dble(i-1)/dble(sol%nint)
+                end do
+
+                call meshgen(xa, xb, sol%x, xi, sol%nint, uinit, sol%npde, wm, ier)
+
+                ! write(*,*) 'nint ', sol%nint
+                ! write(*,*) 'xa ', xa
+                ! write(*,*) 'xb ', xb
+
+                ! Free memory
+                deallocate(wm)
+                deallocate(xi)
+            end if
+
 
             ! write(*,*) 'continuation?'
             ! write(*,*) sol%t0
@@ -519,6 +552,24 @@ module bacoli_interface
             !sol%x = 0
             sol%x(1:size(x)) = x
             sol%x(size(x)+1:size(x)) = 0
+
+            if (size(x) > 2) then
+                ! Using the user mesh in solve()
+                write(*,*) 'using user mesh'
+                sol%gen_mesh = .false.
+
+                ! nint is based on the user input
+                sol%nint = size(x) - 1
+            else
+                write(*,*) 'using generated mesh'
+                ! Will be generating the mesh in solve()
+                sol%gen_mesh = .true.
+
+                ! Set number of mesh subintervals as max(10% of nint_max, 10).
+                sol%nint = max(ceiling(0.1*sol%nint_max), 10)
+            end if
+
+
 
             ! Allocate error tolerance arrays
             allocate(sol%atol(npde), stat=ier)

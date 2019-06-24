@@ -141,7 +141,9 @@ class BacoliPy:
         initial_time : float 
             Initial point on the time domain.
         initial_mesh : castable to floating point ndarray
-            The initial spatial mesh.
+            The initial spatial mesh. If it has length 2, then these are assumed to be the
+            boundaries of the spatial domain and an initial mesh is automatically generated
+            which is adapted to the behaviour of the initial conditions.
         tspan : castable to floating point ndarray
             Vector or scalar containing times at which the solution will be output. 
         xspan : castable to floating point ndarray
@@ -181,6 +183,8 @@ class BacoliPy:
         if not isinstance(initial_time, numbers.Number):
             raise TypeError('initial_time must be a scalar quantity.')
 
+
+
         # Make sure initial spatial mesh contains at least the left and right 
         # extents of a spatial domain and if it is of correcy type.
         if not isinstance(initial_mesh, np.ndarray):
@@ -189,6 +193,10 @@ class BacoliPy:
             except ValueError:
                 print('Could not convert initial_mesh into numpy array.')
                 raise
+                
+        # Check that initial_mesh has >= 2 elements
+        if len(initial_mesh) < 2:
+            raise ValueError('initial_mesh must contain >= 2 elements.')
 
         # Check for monotone mesh.
         if not all(x<y for x, y in zip(initial_mesh, initial_mesh[1:])):

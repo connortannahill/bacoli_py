@@ -7106,3 +7106,176 @@ c     d1 and d2 are what is *actually* added or subtracted
 
       return
       end
+
+      subroutine meshgen(xa, xb, x, xi, nint, uinit, npde, wm, ierr)
+      implicit none
+c     Generates an effective initial mesh of nint subintervals
+c     partitioning the spatial domain [xa, xb],
+c                xa = x1 < ... < x{nint+1} = xb
+c     based on the initial condition uinit (as described in the BACOLI
+c     documentation).
+c     To be used on the initial call to BACOLI, as the mesh will be
+c     selected adaptively and should not be modified by the user
+c     between calls to BACOLI.
+c     ----------------------------------------------------------------
+c     Parameters:
+c     ----------------------------------------------------------------
+c     Work offsets
+c     ------------
+      integer    xioff
+c     Offset for uniform mesh partitioning spatial domain used in this
+c     equidistribution algorithm.
+      integer    moff
+c     Offset which holds evaluations of the arc-length monitor function
+c     derived from uinit.
+      integer    uaoff
+      integer    umoff
+      integer    uboff
+c     Offsets used to evaluate first derivative of uinit.
+c     Input
+c     -----
+      double precision xa
+c     The LHS boundary of the spatial domain.
+      double precision xb
+c     The RHS boundary of the spatial domain.
+      integer          nint
+c     The number of spatial subintervals to be used in the initial mesh.
+c     nint >= 3.
+      external         uinit
+c     Subroutine giving the initial conditions for this PDE.
+      integer          npde
+c     The number of pdes in this system.
+      double precision wm((nint+1)+3*npde)
+c     Work memory of size 2*(nint+1)+3*npde
+      double precision xi(nint+1)
+c     Reference mesh.
+c     Output
+c     ------
+      double precision x(nint+1)
+c     An initial mesh of nint subintervals which is well-adapted to the
+c     initial solution behavior.
+      integer          ierr
+c     Error flag indicating whether mesh generation was successful.
+c     If ierr = 0 - the mesh generation was successful
+c     otherwise if ierr = -1, there was an error
+
+c     Locals
+      integer i, j, k
+      double precision sigma, sigmai, temp1, temp, emach, h1, h2
+      double precision d1mach
+      external         d1mach
+
+      ierr = 0
+
+C     Validate input
+      if (nint .lt. 3) then
+        write(*,*) 'error in meshgen: nint < 3.'
+        ierr = -1
+        return
+      end if
+
+c     Set offsets into the work array
+      moff  = 1
+      uaoff = moff+(nint+1)
+      umoff = uaoff+npde
+      uboff = umoff+npde
+
+c     Get machine epsilon
+      emach = d1mach(4)
+
+c     Generate the arc-length monitor function on this initial uniform
+c     mesh.
+
+c     LHS boundary
+      call uinit(xi(1), wm(uaoff), npde)
+      call uinit(xi(2), wm(umoff), npde)
+      call uinit(xi(3), wm(uboff), npde)
+
+C     Compute the arc-length monitor function
+
+c     Initialize to zeros
+      do i = 1, nint+1
+          wm(moff+(i-1)) = 0.0d0
+      end do
+
+c     Compute the arc-length monitor function
+      h1 = xi(2) - xi(1)
+      h2 = xi(3) - xi(2)
+      do j = 1, npde
+          wm(moff) = wm(moff) 
+     &        + ((-(2.0d0*h1+h2))/(h1*(h1+h2))*wm(uaoff+(j-1))
+     &        + (h1+h2)/(h1*h2)*wm(umoff+(j-1))
+     &        - (h1)/((h1+h2)*h2)*wm(uboff+(j-1)))**2
+      end do
+
+      wm(moff) = sqrt(0.001d0+wm(moff)/dble(npde))
+
+c     Internal subintervals.
+      do i = 2, nint
+          call uinit(xi(i-1), wm(uaoff), npde)
+          call uinit(xi(i), wm(umoff), npde)
+          call uinit(xi(i+1), wm(uboff), npde)
+
+          h1 = xi(i) - xi(i-1)
+          h2 = xi(i+1) - xi(i)
+
+          do j = 1, npde
+              wm(moff+(i-1)) = wm(moff+(i-1))
+     &            + ((-h2)/(h1*(h1+h2))*wm(uaoff+(j-1))
+     &            + (-(h1-h2))/(h1*h2)*wm(umoff+(j-1))
+     &            + (h1)/(h2*(h1+h2))*wm(uboff+(j-1)))**2
+          end do
+
+          wm(moff+(i-1)) = sqrt(0.001d0+wm(moff+(i-1))/dble(npde))
+      end do
+
+c     RHS boundary
+      call uinit(xi(nint-1), wm(uaoff), npde)
+      call uinit(xi(nint), wm(umoff), npde)
+      call uinit(xi(nint+1), wm(uboff), npde)
+
+      h1 = xi(nint) - xi(nint-1)
+      h2 = xi(nint+1) - xi(nint)
+
+      do j = 1, npde
+          wm(moff+nint) = wm(moff+nint)
+     &        + ((h2)/(h1*(h1+h2))*wm(uboff+(j-1))
+     &        + (-(h1+h2))/(h1*h2)*wm(umoff+(j-1))
+     &        + (h1+2.0d0*h2)/(h2*(h1+h2))*wm(uboff+(j-1)))**2
+      end do
+
+      wm(moff+nint) = sqrt(0.001d0+wm(moff+nint)/dble(npde))
+
+c     Compute a mesh which approximately equidistributes this monitor
+c     function using deBoor's equidistribution algorithm.
+      sigma = 0.0d0
+      do i = 2, nint+1
+          sigma = sigma + (xi(i) - xi(i-1))
+     &      *(wm(moff+(i-1))+wm(moff+(i-2)))
+      end do
+      sigma = 0.5d0*sigma
+      
+      x(1) = xi(1)
+      x(nint+1) = xi(nint+1)
+      k = 2
+      temp1 = 0.0d0
+      
+      do i = 2, nint
+          sigmai = xi(i)*sigma
+
+          do j = k, nint+1
+              temp = temp1 + 0.5d0*(xi(j) - xi(j-1))
+     &              *(wm(moff+(j-1))+wm(moff+(j-2)))
+              if (sigmai <  temp + emach) then
+                  k = j
+                  exit
+              end if
+              temp1 = temp
+          end do
+
+          x(i) = xi(k-1) + 2.0d0*(sigmai-temp1)
+     &           /(wm(moff+(k-1))+wm(moff+(k-2)))
+      end do
+
+      return
+      end

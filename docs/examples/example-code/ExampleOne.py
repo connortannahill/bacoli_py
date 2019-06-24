@@ -4,6 +4,7 @@
 
 import bacoli_py
 import numpy
+from numpy import array
 from numpy import exp
 
 # Initialize the BacoliPy object with optional parameter nint_max, the maximum
