@@ -31,10 +31,7 @@ class ProblemDefinition:
         Raises
         ------
         ValueError
-            If any of the arguments of of invalid type.
-        ValueError
-            If the argument lists for the callback functions have incorrect
-                lengths.
+            If npde is the wrong type
         ValueError
             If only one of difbxa, difbxb are provided.
         """
@@ -44,35 +41,13 @@ class ProblemDefinition:
         except ValueError:
             raise ValueError('npde must be an integer value.')
 
-        # Check that properties defined in class instantiation are callback
-        # functions.
-        if not callable(f):
-            raise ValueError('f must be a callback function.')
-        elif len(inspect.getargspec(f)[0]) != 6:
-            raise ValueError('f has invalid argument list.')
-        else:
-            self.f = f 
+        self.f = f 
 
-        if not callable(bndxa):
-            raise ValueError('bndxa must be a callback function.')
-        elif len(inspect.getargspec(bndxa)[0]) != 4:
-            raise ValueError('bndxa has invalid argument list.')
-        else:
-            self.bndxa = bndxa
+        self.bndxa = bndxa
 
-        if not callable(bndxb):
-            raise ValueError('bndxb must be a callback function.')
-        elif len(inspect.getargspec(bndxb)[0]) != 4:
-            raise ValueError('bndxb has invalid argument list.')
-        else:
-            self.bndxb = bndxb 
+        self.bndxb = bndxb 
 
-        if not callable(uinit):
-            raise ValueError('uinit must be callback function.')
-        elif len(inspect.getargspec(uinit)[0]) != 2:
-            raise ValueError('uinit has invalid argument list.')
-        else:
-            self.uinit = uinit 
+        self.uinit = uinit 
 
         if (difbxa == None and difbxb != None) \
                 or (difbxa != None and difbxb == None):
@@ -82,10 +57,6 @@ class ProblemDefinition:
         # Check if any of the three optional callback functions have been
         # provided. If not, set to dummy function and set appropriate flag.
         if derivf != None:
-            if not callable(derivf):
-                raise ValueError('derivf must be a callback function.')
-            elif len(inspect.getargspec(derivf)[0]) != 8:
-                raise ValueError('derivf has invalid argument list.')
             self.derivf = derivf
             self.is_derivf = True
         else:
@@ -93,10 +64,6 @@ class ProblemDefinition:
             self.is_derivf = False
 
         if difbxa != None:
-            if not callable(difbxa):
-                raise ValueError('difbxa must be a callback function.')
-            elif len(inspect.getargspec(difbxa)[0]) != 6:
-                raise ValueError('difbxa has invalid argument list.')
             self.difbxa = difbxa
             self.is_difbxa = True
         else:
@@ -104,10 +71,6 @@ class ProblemDefinition:
             self.is_difbxa = False
 
         if difbxb != None:
-            if not callable(difbxb):
-                raise ValueError('difbxb must be a callback function.')
-            elif len(inspect.getargspec(difbxb)[0]) != 6:
-                raise ValueError('difbxb has invalid argument list.')
             self.difbxb = difbxb
             self.is_difbxb = True
         else:

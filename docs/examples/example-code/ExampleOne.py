@@ -7,9 +7,9 @@ import numpy
 from numpy import array
 from numpy import exp
 
-# Initialize the BacoliPy object with optional parameter nint_max, the maximum
+# Initialize the Solver object with optional parameter nint_max, the maximum
 # number of spatial subintervals which will be used in solving this system.
-solver = bacoli_py.BacoliPy()
+solver = bacoli_py.Solver()
 
 # Initialize problem-dependent parameters.
 be = 0.514
@@ -92,13 +92,13 @@ initial_time = 0.0
 initial_mesh = numpy.linspace(-2, 2, 11)
 
 # Set the times at which the solution should be output.
-tspan = array([0.0, 5.0, 10.0, 15.0, 40.0])
+tspan = array([0.001, 5.0, 10.0, 15.0, 40.0])
 
 # Set the points at which the solution should be output.
 xspan = numpy.linspace(-2,2,100)
 
 # Solve this system for each output time and point.
-solution = solver.solve(problem_definition, initial_time, initial_mesh,
+evaluation = solver.solve(problem_definition, initial_time, initial_mesh,
                                   tspan, xspan)
 
 # Use matplotlib.pyplot to plot the distribution of the susceptible population 
@@ -108,11 +108,11 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 # Plot all all times on same graph.
-plt.plot(xspan, solution.u[0,0,:])
-plt.plot(xspan, solution.u[0,1,:])
-plt.plot(xspan, solution.u[0,2,:])
-plt.plot(xspan, solution.u[0,3,:])
-plt.plot(xspan, solution.u[0,4,:])
+plt.plot(xspan, evaluation.u[0,0,:])
+plt.plot(xspan, evaluation.u[0,1,:])
+plt.plot(xspan, evaluation.u[0,2,:])
+plt.plot(xspan, evaluation.u[0,3,:])
+plt.plot(xspan, evaluation.u[0,4,:])
 
 plt.legend(['t=0', 't=5', 't=10', 't=15', 't=40'])
 

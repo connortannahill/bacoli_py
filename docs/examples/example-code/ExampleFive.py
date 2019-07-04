@@ -4,10 +4,10 @@
 import bacoli_py
 import numpy
 
-# Create BacoliPy object. Here use the Runge-Kutta method for time
+# Create Solver object. Here use the Runge-Kutta method for time
 # integration and allow a large number of spatial subintervals to be
 # used.
-solver = bacoli_py.BacoliPy(t_est='r', nint_max=2000)
+solver = bacoli_py.Solver(t_int='r', nint_max=2000)
 
 # The number of PDEs in this system.
 npde = 4
@@ -75,7 +75,7 @@ initial_time = 0
 initial_mesh = numpy.linspace(-30, 90, 101)
 
 # Output points
-tspan = numpy.linspace(0, 50, 101)
+tspan = numpy.linspace(0.001, 50, 101)
 xspan = numpy.linspace(-30, 90, 101)
 
 # Set a high level of error control.
@@ -83,7 +83,7 @@ atol = 1.0e-6
 rtol = atol
 
 # Solve the nonlienar Schrodinger system.
-solution = solver.solve(problem_definition, initial_time, initial_mesh,
+evaluation = solver.solve(problem_definition, initial_time, initial_mesh,
                            tspan, xspan, atol, rtol)
 
 # Plotting these numerical results in 3D.
@@ -104,7 +104,7 @@ T, X = numpy.meshgrid(tspan, xspan)
 
 # Extract the solution for the first PDE in the solved system.
 for i in range(npde):
-    Z = solution.u[i,:,:]
+    Z = evaluation.u[i,:,:]
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')

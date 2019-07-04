@@ -1,11 +1,11 @@
 import bacoli_interface
 from bacoli_py.ProblemDefinition import ProblemDefinition
-from bacoli_py.Solution import Solution
+from bacoli_py.Evaluation import Evaluation
 import numpy as np
 from numpy import array
 import numbers
 
-class BacoliPy:
+class Solver:
 
     """PDE solver wrapping the BACOLI and BACOLRI software packages.
 
@@ -13,7 +13,7 @@ class BacoliPy:
     of parabolic 1D partial differential equations. 
     """
 
-    def __init__(self, nint_max=500, kcol=4, t_est='b', s_est='loi', maxord=None,
+    def __init__(self, nint_max=500, kcol=4, t_int='b', s_est='loi', maxord=None,
                  ini_ss=None):
         """A solver object, may be passed optional arguments which determine
            the functionality of the underlying solver. 
@@ -26,10 +26,10 @@ class BacoliPy:
             The number of collocation points per mesh subinterval which
             determines the order of the piecewise polynomials basis used
             in spatial discretization.
-        t_est : string
+        t_int : string
             Determines which of the two adaptive error control time integration
-            schemes be used. t_est = 'b' corresponds to an adaptive order BDF.
-            method, t_est = 'r' corresponds to a 5th order Runge-Kutta Method.
+            schemes be used. t_int = 'b' corresponds to an adaptive order BDF.
+            method, t_int = 'r' corresponds to a 5th order Runge-Kutta Method.
             Default value of 'b'.
         s_est : string 
             Determines which of the two spatial error estimation schemes will
@@ -37,7 +37,7 @@ class BacoliPy:
             value of 'loi'.
         maxord : int
             The maximum order of BDF method to be used in time integration.
-            Only used if t_est = 'b'. 1 <= maxord <= 5
+            Only used if t_int = 'b'. 1 <= maxord <= 5
         ini_ss : float 
             Initial stepsize for time integration. If not
             provided will be chosen automatically.
@@ -88,8 +88,8 @@ class BacoliPy:
             else:
                 self.is_maxord = True
 
-                if (t_est == 'r'):
-                    print("Note: when using BacoliPy with t_est ='r', setting " \
+                if (t_int == 'r'):
+                    print("Note: when using Solver with t_int ='r', setting " \
                         + "maxord has no effect.")
         elif maxord == None:
             maxord = 0
@@ -109,29 +109,30 @@ class BacoliPy:
             ini_ss = -1
             self.is_ini_ss = False
 
-        if t_est != 'b' and t_est != 'r':
-            raise ValueError("t_est must either be 'b', or 'r'.")
+        if t_int != 'b' and t_int != 'r':
+            raise ValueError("t_int must either be 'b', or 'r'.")
         else:
-            # Convert t_est to the form used by the Fortran software.
-            if t_est == 'b':
-                t_est = 0
+            # Convert t_int to the form used by the Fortran software.
+            if t_int == 'b':
+                t_int = 0
             else:
-                t_est = 1
+                t_int = 1
 
         # Convert all arguments into numpy arrays for passing to Fortran.
         try:
             self.nint_max = array(nint_max, dtype=np.int)
             self.kcol = array(kcol, dtype=np.int)
-            self.t_est = array(t_est, dtype=np.int)
+            self.t_int = array(t_int, dtype=np.int)
             self.s_est = array(s_est, dtype=np.int)
             self.maxord = array(maxord, dtype=np.int)
             self.ini_ss = array(ini_ss, dtype=np.float64)
         except ValueError:
-            print('Could not convert all BacoliPy arguments into numpy arrays')
+            print('Could not convert all Solver arguments into numpy arrays')
             raise
 
     def solve(self, problem_definition, initial_time, initial_mesh, tspan,
-              xspan, atol=1e-4, rtol=1e-4, dirichlet=False, tstop=None, deriv=False):
+              xspan, atol=1e-4, rtol=1e-4, dirichlet=False, tstop=None, vec=True,
+              deriv=False):
         """Solves a system of Partial Differential Equations numerically.
 
         Parameters
@@ -156,14 +157,17 @@ class BacoliPy:
             Specifies if both of the boundary conditions are dirichlet.
         tstop : float
             Indicates the absolute end of the temporal domain. Used by BACOLI's
-            underlying time integrator DASSL. Only used if t_est = 'b'.
+            underlying time integrator DASSL. Only used if t_int = 'b'.
+        vec   : bool
+            Indicates whether vectorization of the main user callback routine should
+            be done.
         deriv : bool
             Indicates that the returned Solution object should contain the first
             spatial derivative at each point.
             
         Returns
         -------
-        bacoli_solution : :class:`Solution`
+        bacoli_solution : :class:`Evaluation`
             A object containing the results which have been computed with BACOLI.
         
         Raises
@@ -193,6 +197,10 @@ class BacoliPy:
             except ValueError:
                 print('Could not convert initial_mesh into numpy array.')
                 raise
+
+        # Validate vectorization flag
+        if not isinstance(vec, bool):
+            raise ValueError('vec must have type bool.')
                 
         # Check that initial_mesh has >= 2 elements
         if len(initial_mesh) < 2:
@@ -289,14 +297,14 @@ class BacoliPy:
                 raise TypeError('tstop must be a number.')
             else:
                 is_tstop = True
-                if (self.t_est == 1):
-                    print("Note: when using BacoliPy with t_est ='r', setting " \
+                if (self.t_int == 1):
+                    print("Note: when using Solver with t_int ='r', setting " \
                         + "tstop has no effect.")
         
-        # Initialize Bacoli95 solution object.
+        # Initialize Bacoli95 solver object.
         idid = self.bacoli_obj.initialize(npde=problem_definition.npde,
             nint_max=self.nint_max, kcol=self.kcol, s_est=self.s_est,
-            t_est=self.t_est, maxord=self.maxord, is_maxord=self.is_maxord,
+            t_est=self.t_int, maxord=self.maxord, is_maxord=self.is_maxord,
             atol=atol, rtol=rtol, t0=initial_time, x=initial_mesh,
             xspan=xspan, dirichlet=dirichlet, ini_ss=self.ini_ss,
             is_ini_ss=self.is_ini_ss, tstop=tstop,
@@ -306,34 +314,39 @@ class BacoliPy:
         if idid < 0:
             raise RuntimeError(__get_error_message(self.bacoli_obj.idid))
 
-        # Memory used to contain array slices in convernient format
-        u_sliced    = np.ndarray(shape=(npde), dtype=np.ndarray)
-        ux_sliced   = np.ndarray(shape=(npde), dtype=np.ndarray)
-        uxx_sliced  = np.ndarray(shape=(npde), dtype=np.ndarray)
-        fval_sliced = np.ndarray(shape=(npde), dtype=np.ndarray)
+        # Memory used to contain array slices in convernient format when
+        # vectorization is to be used
+        if vec:
+            u_sliced    = np.ndarray(shape=(npde), dtype=np.ndarray)
+            ux_sliced   = np.ndarray(shape=(npde), dtype=np.ndarray)
+            uxx_sliced  = np.ndarray(shape=(npde), dtype=np.ndarray)
+            fval_sliced = np.ndarray(shape=(npde), dtype=np.ndarray)
 
-        def __fvec(t, x, u, ux, uxx, fval, npde, vnpts):
-            """Function for vectorized BACOLI"""
+            def __fvec(t, x, u, ux, uxx, fval, npde, vnpts):
+                """Function for vectorized BACOLI"""
 
-            for i in range(int(npde)):
-                l = i*vnpts
-                r = (i+1)*vnpts
+                for i in range(int(npde)):
+                    l = i*vnpts
+                    r = (i+1)*vnpts
 
-                u_sliced[i]    = u[l:r]
-                ux_sliced[i]   = ux[l:r]
-                uxx_sliced[i]  = uxx[l:r]
-                fval_sliced[i] = fval[l:r]
+                    u_sliced[i]    = u[l:r]
+                    ux_sliced[i]   = ux[l:r]
+                    uxx_sliced[i]  = uxx[l:r]
+                    fval_sliced[i] = fval[l:r]
 
 
-            # Make vectorized call with f.
-            problem_definition.f(t, x, u_sliced, ux_sliced, 
-                uxx_sliced, fval_sliced)
+                # Make vectorized call with f.
+                problem_definition.f(t, x, u_sliced, ux_sliced, 
+                    uxx_sliced, fval_sliced)
 
-            for i in range(int(npde)):
-                fval[i*vnpts:(i+1)*vnpts] = fval_sliced[i]
+                for i in range(int(npde)):
+                    fval[i*vnpts:(i+1)*vnpts] = fval_sliced[i]
 
-            # Return fval, array will have been modified with this call.
-            return fval
+                # Return fval, array will have been modified with this call.
+                return fval
+        else:
+            def __fvec(t, x, u, ux, uxx, fval, npde, vnpts):
+                pass
 
         # Create arrays to be returned to user. Values for calls to 
         # bacoli95_vals are appended to this array and final result is returned
@@ -342,9 +355,6 @@ class BacoliPy:
 
         # Array containing derivative information
         solution_deriv = np.empty(shape=(npde, tspan.size, xspan.size))
-
-        # Derivative is set to NaN at first time step
-        solution_deriv[:,0,:] = np.nan
 
         # Create array used to hold values from calls to bacoli95_vals.
         u_in = np.empty(shape=(npde, xspan.size))
@@ -357,18 +367,7 @@ class BacoliPy:
             # If an output time is equal to the initial time, then call
             # the function specifying initial conditions. 
             if tspan[i] == initial_time:
-                temp_soln = np.empty(shape=(npde, xspan.size))
-
-                for j in range(xspan.size):
-                    u = np.zeros(npde)
-                    u = problem_definition.uinit(xspan[j], u)
-                    temp_soln[:,j] = u
-
-                for j in range(npde):
-                    solution[j,i,:] = temp_soln[j,:]
-                
-                continue
-
+                raise ValueError('tspan can not include the initial point in time.')
 
             # Call the bacoli95 subroutines interfacing subroutine. Advances the
             # solution to the next value in tspan.
@@ -383,7 +382,8 @@ class BacoliPy:
                 difbxa=problem_definition.difbxa,
                 is_difbxa=problem_definition.is_difbxa,
                 difbxb=problem_definition.difbxb,
-                is_difbxb=problem_definition.is_difbxb)
+                is_difbxb=problem_definition.is_difbxb,
+                vec=vec)
 
             if idid < 0:
                 raise RuntimeError("An error was raised during this computation.\n ")
@@ -400,9 +400,9 @@ class BacoliPy:
 
         # Build and return solution object.
         if deriv:
-            return Solution(tspan, xspan, solution, solution_deriv)
+            return Evaluation(tspan, xspan, solution, solution_deriv)
         else:
-            return Solution(tspan, xspan, solution)
+            return Evaluation(tspan, xspan, solution)
 
     @staticmethod
     def __get_error_message(idid):

@@ -1,4 +1,4 @@
-Example Five
-============
+Example Six
+===========
 
 .. literalinclude:: example-code/ExampleSix.py

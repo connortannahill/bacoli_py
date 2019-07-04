@@ -7,6 +7,6 @@ scikits.bacoli_py
 .. autosummary::
     :toctree: 
 
-    BacoliPy
+    Solver
     ProblemDefinition
-    Solution
+    Evaluation

@@ -9,8 +9,8 @@ import bacoli_py
 import numpy
 from numpy import tanh, exp
 
-# Initialize the BacoliPy object.
-solver = bacoli_py.BacoliPy()
+# Initialize the Solver object.
+solver = bacoli_py.Solver()
 
 # Specify the number of PDE's in this system.
 npde = 1
@@ -105,14 +105,14 @@ initial_time = 0.0
 initial_mesh = numpy.linspace(0, 1, 11)
 
 # Choose output times and points.
-tspan = numpy.linspace(0, 1, 100)
+tspan = numpy.linspace(0.001, 1, 100)
 xspan = numpy.linspace(0, 1, 100)
 
 # Solve this problem.
-solution = solver.solve(problem_definition, initial_time, initial_mesh,
+evaluation = solver.solve(problem_definition, initial_time, initial_mesh,
                            tspan, xspan, atol=1e-6, rtol=1e-6)
 
-u = solution.u[0,:,:]
+u = evaluation.u[0,:,:]
 
 # Plot the solution.
 import matplotlib as mpl

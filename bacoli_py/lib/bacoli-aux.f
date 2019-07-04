@@ -70,7 +70,7 @@ c--- DASSL routines (modified)
       SUBROUTINE DDASSL (RES, NEQ, T, Y, YPRIME, TOUT, INFO, RTOL, ATOL,
      +   IDID, RWORK, LRW, IWORK, LIW, RPAR, IPAR, JAC,
 c-----------------------------------------------------------------------
-     +   fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     +   f, fvec, derivf, bndxa, difbxa, bndxb, difbxb, vec)
 c-----------------------------------------------------------------------
 c     This routine has been modified to accept an almost block diagonal
 c     (ABD) Jacobian matrix compatible with the linear algebra package,
@@ -1080,8 +1080,9 @@ C
      *   T, Y(*), YPRIME(*), TOUT, RTOL(*), ATOL(*), RWORK(*),
      *   RPAR(*)
       EXTERNAL  RES, JAC
+      logical  vec
 c-----------------------------------------------------------------------
-      external fvec, derivf, bndxa, difbxa, bndxb, difbxb
+      external f, fvec, derivf, bndxa, difbxa, bndxb, difbxb
 c-----------------------------------------------------------------------
 C
 C     Declare externals.
@@ -1349,7 +1350,7 @@ C     COMPUTE INITIAL DERIVATIVE, UPDATING TN AND Y, IF APPLICABLE
      *  RWORK(LWM),IWORK(LIWM),HMIN,RWORK(LROUND),
      *  INFO(10),NTEMP,
 c-----------------------------------------------------------------------
-     *  fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     *  f, fvec, derivf, bndxa, difbxa, bndxb, difbxb, vec)
 c-----------------------------------------------------------------------
       IF (IDID .LT. 0) GO TO 390
 C
@@ -1521,7 +1522,7 @@ C
      *   IWORK(LPHASE),IWORK(LJCALC),IWORK(LK),
 c-----------------------------------------------------------------------
      *   IWORK(LKOLD),IWORK(LNS),INFO(10),NTEMP,rwork(lcjsca),
-     *   fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     *   f, fvec, derivf, bndxa, difbxa, bndxb, difbxb, vec)
 c-----------------------------------------------------------------------
 527   IF(IDID.LT.0)GO TO 600
 C
@@ -1810,7 +1811,7 @@ C-----------END OF SUBROUTINE DDASSL------------------------------------
       SUBROUTINE DDAINI (X, Y, YPRIME, NEQ, RES, JAC, H, WT, IDID, RPAR,
      +   IPAR, PHI, DELTA, E, WM, IWM, HMIN, UROUND, NONNEG, NTEMP,
 c-----------------------------------------------------------------------
-     +   fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     +   f, fvec, derivf, bndxa, difbxa, bndxb, difbxb, vec)
 c-----------------------------------------------------------------------
 C***BEGIN PROLOGUE  DDAINI
 C***SUBSIDIARY
@@ -1875,6 +1876,7 @@ C   901030  Minor corrections to declarations.  (FNF)
 C***END PROLOGUE  DDAINI
 C
       INTEGER  NEQ, IDID, IPAR(*), IWM(*), NONNEG, NTEMP
+      logical vec
       DOUBLE PRECISION
      *   X, Y(*), YPRIME(*), H, WT(*), RPAR(*), PHI(NEQ,*), DELTA(*),
      *   E(*), WM(*), HMIN, UROUND
@@ -1882,7 +1884,7 @@ C
 c-----------------------------------------------------------------------
 c     BACOLI --> BACOLIVEC
 c         vectorized user routines.
-      external fvec, derivf, bndxa, difbxa, bndxb, difbxb
+      external f, fvec, derivf, bndxa, difbxa, bndxb, difbxb
 c-----------------------------------------------------------------------
 C
       EXTERNAL  DDAJAC, DDANRM, DDASLV
@@ -1948,7 +1950,7 @@ C         Note: should probably remove all calls to normal f
 C               in final version.
       CALL RES(X,Y,YPRIME,DELTA,IRES,RPAR,IPAR,
 c-----------------------------------------------------------------------
-     *         fvec, bndxa, bndxb)
+     *         f, fvec, bndxa, bndxb, vec)
 c-----------------------------------------------------------------------
       IF (IRES.LT.0) GO TO 430
 C
@@ -1961,7 +1963,7 @@ C     EVALUATE THE ITERATION MATRIX
      *   IER,WT,E,WM,IWM,RES,IRES,
      *   UROUND,JAC,RPAR,IPAR,NTEMP,
 c-----------------------------------------------------------------------
-     *   fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     *   f, fvec, derivf, bndxa, difbxa, bndxb, difbxb)
 c-----------------------------------------------------------------------
 C
       S=1000000.D0
@@ -2098,7 +2100,7 @@ C-------------END OF SUBROUTINE DDAINI----------------------
      +   IER, WT, E, WM, IWM, RES, IRES, UROUND, JAC, RPAR,
      +   IPAR, NTEMP,
 c-----------------------------------------------------------------------
-     +   fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     +   f, fvec, derivf, bndxa, difbxa, bndxb, difbxb, vec)
 c-----------------------------------------------------------------------
 c     This routine has been modified to accept an almost block diagonal
 c     (ABD) Jacobian matrix compatible with the linear algebra package,
@@ -2172,7 +2174,8 @@ C
 c-----------------------------------------------------------------------
 c     BACOLI --> BACOLIVEC
 c         added fvec
-      external fvec, derivf, bndxa, difbxa, bndxb, difbxb
+      logical vec
+      external f, fvec, derivf, bndxa, difbxa, bndxb, difbxb
 c-----------------------------------------------------------------------
 C
       EXTERNAL  DGBFA, DGEFA
@@ -2265,7 +2268,7 @@ C     BACOLI --> BACOLIVEC
 C         Changed to allow vectorized user routine call.
          CALL RES(X,Y,YPRIME,E,IRES,RPAR,IPAR,
 c-----------------------------------------------------------------------
-     *            fvec, bndxa, bndxb)
+     *            f, fvec, bndxa, bndxb, vec)
 c-----------------------------------------------------------------------
          IF (IRES .LT. 0) RETURN
          DELINV=1.0D0/DEL
@@ -2337,8 +2340,8 @@ c           The bottom block is included if nint is odd.
             enddo
 c     BACOLI --> BACOLIVEC
 c         Modified to allow calls to vectorized user routine.
-            call res(x, y, yprime, e, ires, rpar, ipar, fvec,
-     &               bndxa, bndxb)
+            call res(x, y, yprime, e, ires, rpar, ipar, f, fvec,
+     &               bndxa, bndxb, vec)
             if (ires .lt. 0) return
             do n = i, neq, step
                k = (n - i) / step + 1
@@ -2465,7 +2468,7 @@ c     BACOLI --> BACOLIVEC
 c         added call to vectorized user routine.
       CALL RES(X,Y,YPRIME,E,IRES,RPAR,IPAR,
 c-----------------------------------------------------------------------
-     *         fvec, bndxa, bndxb)
+     *         f, fvec, bndxa, bndxb, vec)
 c-----------------------------------------------------------------------
       IF (IRES .LT. 0) RETURN
       DO 530 N=J,NEQ,MBAND
@@ -2681,7 +2684,7 @@ C------END OF SUBROUTINE DDASLV------
      +   PSI, SIGMA, CJ, CJOLD, HOLD, S, HMIN, UROUND, IPHASE, JCALC,
 c-----------------------------------------------------------------------
      +   K, KOLD, NS, NONNEG, NTEMP, cjscal,
-     +   fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     +   f, fvec, derivf, bndxa, difbxa, bndxb, difbxb, vec)
 c-----------------------------------------------------------------------
 C***BEGIN PROLOGUE  DDASTP
 C***SUBSIDIARY
@@ -2789,8 +2792,9 @@ C
      *   E(*), WM(*), ALPHA(*), BETA(*), GAMMA(*), PSI(*), SIGMA(*), CJ,
      *   CJOLD, HOLD, S, HMIN, UROUND
       EXTERNAL  RES, JAC
+      logical vec
 c-----------------------------------------------------------------------
-      external fvec, derivf, bndxa, difbxa, bndxb, difbxb
+      external f, fvec, derivf, bndxa, difbxa, bndxb, difbxb
 c-----------------------------------------------------------------------
 C
       EXTERNAL  DDAJAC, DDANRM, DDASLV, DDATRP
@@ -2958,7 +2962,7 @@ c     BACOLI --> BACOLIVEC
 c         Added call to vectorized user routine.
       CALL RES(X,Y,YPRIME,DELTA,IRES,RPAR,IPAR,
 c-----------------------------------------------------------------------
-     *         fvec, bndxa, bndxb)
+     *         f, fvec, bndxa, bndxb, vec)
 c-----------------------------------------------------------------------
       IF (IRES .LT. 0) GO TO 380
 C
@@ -2975,7 +2979,7 @@ C     THIS HAS BEEN DONE.
      * IER,WT,E,WM,IWM,RES,IRES,UROUND,JAC,RPAR,
      * IPAR,NTEMP,
 c-----------------------------------------------------------------------
-     * fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     * f, fvec, derivf, bndxa, difbxa, bndxb, difbxb, vec)
 
       cjscal = cj
 c-----------------------------------------------------------------------
@@ -3038,7 +3042,7 @@ c     BACOLI --> BACOLIVEC
 c         Added vectorized call to f
       CALL RES(X,Y,YPRIME,DELTA,IRES,RPAR,IPAR,
 c-----------------------------------------------------------------------
-     *         fvec, bndxa, bndxb)
+     *         f, fvec, bndxa, bndxb, vec)
 c-----------------------------------------------------------------------
       IF (IRES .LT. 0) GO TO 380
       GO TO 350

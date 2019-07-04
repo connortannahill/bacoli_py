@@ -10,7 +10,7 @@
 import bacoli_py
 import numpy
 
-solver = bacoli_py.BacoliPy()
+solver = bacoli_py.Solver()
 npde = 4
 
 # Initialize problem-dependent parameters.
@@ -72,18 +72,18 @@ initial_time = 0
 initial_mesh = numpy.linspace(0, 1, 101)
 
 # Output points.
-tspan = numpy.linspace(0, 18, 101)
+tspan = numpy.linspace(0.001, 18, 101)
 xspan = numpy.linspace(0, 1, 101)
 
 # Set a high level of error control.
 atol = 1.0e-6
 rtol = atol
 
-solution = solver.solve(problem_definition, initial_time, initial_mesh,
+evaluation = solver.solve(problem_definition, initial_time, initial_mesh,
                            tspan, xspan, atol, rtol)
 
 # Get the approximate solution from the Solution object.
-u = solution.u
+u = evaluation.u
 
 # Plotting these numerical results in 3D.
 import matplotlib as mpl

@@ -10,6 +10,7 @@ Example Problems
         examples.example4
         examples.example5
         examples.example6
+        examples.example7
 
 * :doc:`Example 1 <examples.example1>` - Tutorial Example: Influenza Epidemic Model/2D Plotting of Solution.
 * :doc:`Example 2 <examples.example2>` - Solving the One Layer Burgers Equations/3D Plotting of Solution.
@@ -17,3 +18,4 @@ Example Problems
 * :doc:`Example 4 <examples.example4>` - Simple PDE/Defining Analytic Jacobians/Plotting from Output File. 
 * :doc:`Example 5 <examples.example5>` - Nonlinear Schrodinger system/Runge-Kutta time integration option.
 * :doc:`Example 6 <examples.example6>` - Two Layer Burgers Equation.
+* :doc:`Example 7 <examples.example7>` - Two Layer Burgers Equation/Using compiled Fortran callback functions.

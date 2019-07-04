@@ -1,4 +1,4 @@
-# Solving 4 One Layer Burgers Equations.
+# Solving One Layer Burgers Equations.
 # PDE: u_t = eps*u_xx - u*ux, with initial and boundary conditions
 # defined from the exact solution.
 # ------------------------------------------------------------------
@@ -11,8 +11,8 @@ import bacoli_py
 import numpy
 from numpy import tanh
 
-# Initialize the BacoliPy object.
-solver = bacoli_py.BacoliPy(t_est = 'r')
+# Initialize the Solver object.
+solver = bacoli_py.Solver()
 
 # Specify the number of PDE's in this system.
 npde = 1
@@ -57,14 +57,15 @@ problem_definition = bacoli_py.ProblemDefinition(npde, f=f,
 initial_time = 0.0
 
 # Define the initial spatial mesh.
-initial_mesh = numpy.linspace(0, 1, 11)
+# initial_mesh = numpy.linspace(0, 1, 11)
+initial_mesh = [0, 1]
 
 # Choose output times and points.
-tspan = numpy.linspace(0, 1, 100)
+tspan = numpy.linspace(0.001, 1, 100)
 xspan = numpy.linspace(0, 1, 100)
 
 # Solve this problem.
-solution = solver.solve(problem_definition, initial_time, initial_mesh,
+evaluation = solver.solve(problem_definition, initial_time, initial_mesh,
                            tspan, xspan, atol=1e-6, rtol=1e-6)
 
 # Plotting these numerical results in 3D.
@@ -84,7 +85,7 @@ styling = {
 T, X = numpy.meshgrid(tspan, xspan)
 
 # Extract the solution for the first PDE in the solved system.
-Z = solution.u[0,:]
+Z = evaluation.u[0,:]
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')

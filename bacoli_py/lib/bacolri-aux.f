@@ -943,7 +943,7 @@ c=======================================================================
       SUBROUTINE RADAU5(N,FCN,X,Y,XEND,H,RTOL,ATOL,ITOL,JAC,MAS,SOLOUT,
      &                  WORK,LWORK,IWORK,LIWORK,RPAR,IPAR,CWORK,IDID,
      &                  f, fvec, derivf, bndxa, difbxa, bndxb, difbxb,
-     &                  uinit)
+     &                  uinit, vec)
       implicit none
 C ----------------------------------------------------------
 C     NUMERICAL SOLUTION OF A STIFF (OR DIFFERENTIAL ALGEBRAIC)
@@ -1197,6 +1197,7 @@ c subroutine parameters
       DOUBLE PRECISION X,XEND,H,Y(N),WORK(LWORK)
       DOUBLE PRECISION ATOL(*),RTOL(*),RPAR(*)
       DOUBLE COMPLEX CWORK(*)
+      logical vec
 c-----------------------------------------------------------------------
 c local variables
       INTEGER NFCN,NJAC,NSTEP,NACCPT,NREJCT,NDEC,NSOL,NMAX,NIT,
@@ -1410,7 +1411,7 @@ c      write(*,*) 'calling radcor'
      &   WORK(IEE1),CWORK(IEE2R),WORK(IEMAS),IWORK(IEIP1),IWORK(IEIP2),
      &   WORK(IECON),NFCN,NJAC,NSTEP,NACCPT,NREJCT,NDEC,NSOL,RPAR,IPAR,
      &   CWORK(IECZ2),f, fvec, derivf, bndxa, difbxa, bndxb, difbxb,
-     &   uinit)
+     &   uinit, vec)
 c      write(*,*) 'leaving radcor'
 
       IWORK(14)=NFCN
@@ -1443,7 +1444,7 @@ C
      &   QUOT2,NIT,STARTN,PRED,FACL,FACR,Z1,Z2,Z3,Y0,SCAL,F1,F2,F3,
      &   FJAC,E1,E2R,FMAS,IP1,IP2,CONT,NFCN,NJAC,NSTEP,NACCPT,
      &   NREJCT,NDEC,NSOL,RPAR,IPAR,CZ2,f, fvec, derivf, bndxa, difbxa, 
-     &   bndxb, difbxb, uinit)
+     &   bndxb, difbxb, uinit, vec)
       implicit none
 C ----------------------------------------------------------
 C     CORE INTEGRATOR FOR RADAU5
@@ -1492,7 +1493,7 @@ c-----------------------------------------------------------------------
      &                 DYTH,QNEWT,F1I,F2I,F3I,ERR,FAC,QUOT,HNEW,FACGUS,
      &                 HACC,ERRACC,AK,ACONT3,HOPT,QT
       LOGICAL REJECT,FIRST,CALJAC
-      LOGICAL LAST
+      LOGICAL LAST, vec
 c-----------------------------------------------------------------------
 c loop indices
       INTEGER I,J
@@ -1580,7 +1581,7 @@ c-----------------------------------------------------------------------
       END IF
       HHFAC=H
 c      write(*,*) 'calling fcn'
-      CALL FCN(N,X,Y,Y0,RPAR,IPAR,f,fvec,derivf,bndxa,bndxb)
+      CALL FCN(N,X,Y,Y0,RPAR,IPAR,f,fvec,derivf,bndxa,bndxb, vec)
 c      write(*,*) 'leaving fcn'
       NFCN=NFCN+1
 C --- BASIC INTEGRATION STEP
@@ -1679,18 +1680,19 @@ C ---     COMPUTE THE RIGHT-HAND SIDE
             END DO
 c            write(*,*) 'calling fcn1'
             CALL FCN(N,X+C1*H,CONT,Z1,RPAR,IPAR,f,fvec,derivf,bndxa,
-     &               bndxb)
+     &               bndxb, vec)
             DO I=1,N
                CONT(I)=Y(I)+Z2(I)
             END DO
 c            write(*,*) 'calling fcn2'
             CALL FCN(N,X+C2*H,CONT,Z2,RPAR,IPAR,f,fvec,derivf,bndxa,
-     &               bndxb)
+     &               bndxb, vec)
             DO I=1,N
                CONT(I)=Y(I)+Z3(I)
             END DO
 c            write(*,*) 'calling fcn3'
-            CALL FCN(N,XPH,CONT,Z3,RPAR,IPAR,f,fvec,derivf,bndxa,bndxb)
+            CALL FCN(N,XPH,CONT,Z3,RPAR,IPAR,f,fvec,derivf,bndxa,bndxb,
+     &               vec)
             NFCN=NFCN+3
 c            write(*,*) 'all fcn called'
 C ---     SOLVE THE LINEAR SYSTEMS
@@ -1760,7 +1762,7 @@ c      write(*,*) 'calling estrad'
       CALL ESTRAD (N,NPDE,KCOL,NINT,FMAS,H,DD1,DD2,DD3,FCN,NFCN,
      &          Y0,Y,X,E1,Z1,Z2,Z3,CONT,F1,F2,IP1,SCAL,ERR,
      &          FIRST,REJECT,FAC1,RPAR,IPAR, f, fvec, derivf, bndxa, 
-     &          difbxa, bndxb, difbxb, uinit)
+     &          difbxa, bndxb, difbxb, uinit, vec)
 c      write(*,*) 'leaving estrad'
 C --- COMPUTATION OF HNEW
 C --- WE REQUIRE .2<=HNEW/H<=8.
@@ -1817,7 +1819,7 @@ C       --- PREDICTIVE CONTROLLER OF GUSTAFSSON
             IDID=1
             RETURN
          END IF
-         CALL FCN(N,X,Y,Y0,RPAR,IPAR,f,fvec,derivf,bndxa,bndxb)
+         CALL FCN(N,X,Y,Y0,RPAR,IPAR,f,fvec,derivf,bndxa,bndxb, vec)
          NFCN=NFCN+1
          HNEW=POSNEG*MIN(ABS(HNEW),HMAXN)
          HOPT=HNEW
@@ -2765,7 +2767,7 @@ C
       SUBROUTINE ESTRAD(N,NPDE,KCOL,NINT,FMAS,H,DD1,DD2,DD3,FCN,
      &          NFCN,Y0,Y,X,E1,Z1,Z2,Z3,CONT,F1,F2,IP1,SCAL,ERR,
      &          FIRST,REJECT,FAC1,RPAR,IPAR, f, fvec, derivf, bndxa,
-     &          difbxa, bndxb, difbxb, uinit)
+     &          difbxa, bndxb, difbxb, uinit, vec)
       implicit none
 c-----------------------------------------------------------------------
 c
@@ -2796,6 +2798,7 @@ c local variables
       INTEGER I,J,K,M,III,II,KK,MM,NPDTP1,
      &        NPDBK1,NPDBT1
       DOUBLE PRECISION HEE1,HEE2,HEE3,SUM
+      logical vec
 c-----------------------------------------------------------------------
       HEE1=DD1/H
       HEE2=DD2/H
@@ -2861,7 +2864,7 @@ c      write(*,*) 'leaving crslve'
   100    continue
 c            write(*,*) 'calling fcn'
          call fcn(n, x, cont, f1, rpar, ipar, f, fvec,  derivf, bndxa,
-     &            bndxb)
+     &            bndxb, vec)
 c            write(*,*) 'leaving fcn'
          nfcn = nfcn + 1
          do 110 i = 1, n

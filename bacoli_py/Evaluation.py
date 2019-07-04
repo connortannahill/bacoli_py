@@ -1,4 +1,4 @@
-class Solution:
+class Evaluation:
 
     """An object to hold information from calls to bacoli_py.
 
@@ -8,7 +8,7 @@ class Solution:
     """
 
     def __init__(self, tspan, xspan, u, ux=None):
-        """Solution object.
+        """Evaluation object.
 
         Parameters
         ----------

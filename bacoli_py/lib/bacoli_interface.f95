@@ -249,7 +249,7 @@ module bacoli_interface
 !-----------------------------------------------------------------------
 
         subroutine solve(tout, f, fvec, bndxa, bndxb, uinit, derivf, is_derivf, &
-            difbxa, is_difbxa, difbxb, is_difbxb, idid)
+            difbxa, is_difbxa, difbxb, is_difbxb, idid, vec)
             implicit none
 
             double precision, intent(in) :: tout        
@@ -271,6 +271,7 @@ module bacoli_interface
             double precision              :: xa, xb
             double precision, allocatable :: wm(:), xi(:)
             integer                       :: ier, i
+            logical                       :: vec
  
             ! Set flags about whether or not to use finite differences.
             use_fd_both = (.not. is_derivf) .and. ((.not. is_difbxa) &
@@ -281,7 +282,6 @@ module bacoli_interface
                 is_difbxb
 
             if (sol%mflag(1) == 0 .and. sol%gen_mesh) then
-                write(*,*) 'in sol using generated mesh'
                 ! Extract endpoints
                 xa = sol%x(1)
                 xb = sol%x(2)
@@ -297,18 +297,10 @@ module bacoli_interface
 
                 call meshgen(xa, xb, sol%x, xi, sol%nint, uinit, sol%npde, wm, ier)
 
-                ! write(*,*) 'nint ', sol%nint
-                ! write(*,*) 'xa ', xa
-                ! write(*,*) 'xb ', xb
-
                 ! Free memory
                 deallocate(wm)
                 deallocate(xi)
             end if
-
-
-            ! write(*,*) 'continuation?'
-            ! write(*,*) sol%t0
 
             if (sol%t_est == 0) then
                 if (use_fd_both) then
@@ -316,29 +308,29 @@ module bacoli_interface
                     call bacoli(sol%t0, tout, sol%atol, sol%rtol, sol%npde,   &
                         sol%kcol, sol%nint_max, sol%nint, sol%x, sol%mflag,   &
                         sol%rpar, size(sol%rpar), sol%ipar, size(sol%ipar),   &
-                        sol%y, sol%idid, fvec, dummy_derivf, bndxa, dummy_difbx, &
-                        bndxb, dummy_difbx, uinit, uinitvec)
+                        sol%y, sol%idid, f,fvec, dummy_derivf, bndxa, dummy_difbx, &
+                        bndxb, dummy_difbx, uinit, uinitvec,vec)
                 else if (use_fd_bconds) then
                     sol%mflag(9) = 1
                     call bacoli(sol%t0, tout, sol%atol, sol%rtol, sol%npde,   &
                         sol%kcol, sol%nint_max, sol%nint, sol%x, sol%mflag,   &
                         sol%rpar, size(sol%rpar), sol%ipar, size(sol%ipar),   &
-                        sol%y, sol%idid, fvec, derivf, bndxa, dummy_difbx,       &
-                        bndxb, dummy_difbx, uinit, uinitvec)
+                        sol%y, sol%idid, f,fvec, derivf, bndxa, dummy_difbx,       &
+                        bndxb, dummy_difbx, uinit, uinitvec,vec)
                 else if (use_fd_pde) then
                     sol%mflag(9) = 2
                     call bacoli(sol%t0, tout, sol%atol, sol%rtol, sol%npde,   &
                         sol%kcol, sol%nint_max, sol%nint, sol%x, sol%mflag,   &
                         sol%rpar, size(sol%rpar), sol%ipar, size(sol%ipar),   &
-                        sol%y, sol%idid, fvec, dummy_derivf, bndxa, difbxa,      &
-                        bndxb, difbxb, uinit, uinitvec)
+                        sol%y, sol%idid,f, fvec, dummy_derivf, bndxa, difbxa,      &
+                        bndxb, difbxb, uinit, uinitvec, vec)
                 else
                     sol%mflag(9) = 3
                     call bacoli(sol%t0, tout, sol%atol, sol%rtol, sol%npde,   &
                         sol%kcol, sol%nint_max, sol%nint, sol%x, sol%mflag,   &
                         sol%rpar, size(sol%rpar), sol%ipar, size(sol%ipar),   &
-                        sol%y, sol%idid, fvec, derivf, bndxa, difbxa, bndxb,     &
-                        difbxb, uinit, uinitvec)
+                        sol%y, sol%idid,f, fvec, derivf, bndxa, difbxa, bndxb,     &
+                        difbxb, uinit, uinitvec, vec)
                 end if
             else
                 if (use_fd_both) then
@@ -348,7 +340,7 @@ module bacoli_interface
                         sol%rpar, size(sol%rpar), sol%ipar, size(sol%ipar),   &
                         sol%cpar, size(sol%cpar), sol%y, sol%idid, f, fvec,   &
                         dummy_derivf, bndxa, dummy_difbx, bndxb, dummy_difbx, &
-                        uinit, uinitvec)
+                        uinit, uinitvec, vec)
                 else if (use_fd_bconds) then
                     sol%mflag(6) = 1
                     call bacolri(sol%t0, tout, sol%atol, sol%rtol, sol%npde,  &
@@ -356,21 +348,21 @@ module bacoli_interface
                         sol%rpar, size(sol%rpar), sol%ipar, size(sol%ipar),   &
                         sol%cpar, size(sol%cpar), sol%y, sol%idid, f, fvec,   &
                         derivf, bndxa, dummy_difbx, bndxb, dummy_difbx,       &
-                        uinit, uinitvec)
+                        uinit, uinitvec, vec)
                 else if (use_fd_pde) then
                     sol%mflag(6) = 2
                     call bacolri(sol%t0, tout, sol%atol, sol%rtol, sol%npde,  &
                         sol%kcol, sol%nint_max, sol%nint, sol%x, sol%mflag,   &
                         sol%rpar, size(sol%rpar), sol%ipar, size(sol%ipar),   &
                         sol%cpar, size(sol%cpar), sol%y, sol%idid, f, fvec,   &
-                        dummy_derivf, bndxa, difbxa, bndxb, difbxb, uinit, uinitvec)
+                        dummy_derivf, bndxa, difbxa, bndxb, difbxb, uinit, uinitvec, vec)
                 else
                     sol%mflag(6) = 3
                     call bacolri(sol%t0, tout, sol%atol, sol%rtol, sol%npde,  &
                         sol%kcol, sol%nint_max, sol%nint, sol%x, sol%mflag,   &
                         sol%rpar, size(sol%rpar), sol%ipar, size(sol%ipar),   &
                         sol%cpar, size(sol%cpar), sol%y, sol%idid, f, fvec,   &
-                        derivf, bndxa, difbxa, bndxb, difbxb, uinit, uinitvec)
+                        derivf, bndxa, difbxa, bndxb, difbxb, uinit, uinitvec, vec)
                 end if
             end if
 
@@ -555,13 +547,11 @@ module bacoli_interface
 
             if (size(x) > 2) then
                 ! Using the user mesh in solve()
-                write(*,*) 'using user mesh'
                 sol%gen_mesh = .false.
 
                 ! nint is based on the user input
                 sol%nint = size(x) - 1
             else
-                write(*,*) 'using generated mesh'
                 ! Will be generating the mesh in solve()
                 sol%gen_mesh = .true.
 

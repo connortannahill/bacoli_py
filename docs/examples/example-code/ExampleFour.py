@@ -21,7 +21,7 @@ import numpy
 from numpy import pi
 from numpy import sin
 
-solver = bacoli_py.BacoliPy()
+solver = bacoli_py.Solver()
 npde = 1
 
 # Set t0.
@@ -88,7 +88,7 @@ problem_definition = bacoli_py.ProblemDefinition(npde, f=f,
 
 initial_time = 0
 initial_mesh = numpy.linspace(0, 1, 11)
-tspan = numpy.linspace(0, 1, 20)
+tspan = numpy.linspace(0.001, 1, 20)
 xspan = numpy.linspace(0,1,100)
 atol = 1.0e-6
 rtol = atol
@@ -96,11 +96,11 @@ rtol = atol
 # Solve this system, passing the optional parameter tstop, the absolute
 # end of the temporal domain which can be helpful when performing 
 # time-integration.
-solution = solver.solve(problem_definition, initial_time, initial_mesh,
+evaluation = solver.solve(problem_definition, initial_time, initial_mesh,
                               tspan, xspan, atol, rtol, tstop=1.0)
 
 # Get numerical solution from BacoliSolution object.
-u = solution.u
+u = evaluation.u
 
 # Plotting these numerical results in 3D.
 import matplotlib as mpl

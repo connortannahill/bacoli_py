@@ -30,19 +30,19 @@ And initial conditions:
 
 These problems are solved using an adaptive error control algorithm, with computes an approximate solution which has an associated error estimate which is a beneath a user-specified error tolerance.
 
-To use :mod:`bacoli_py`, you must first initialize the solver by creating a :class:`bacoli_py.BacoliPy` solver object. This solver object can then be suppled a :class:`bacoli_py.ProblemDefinition` object, which defines the PDE system you wish to solve. Following these initialization steps, a call to the :class:`~BacoliPy.solve` method can be made, computing a approximate solution returned within a :class:`bacoli_py.Solution` object.
+To use :mod:`bacoli_py`, you must first initialize the solver by creating a :class:`bacoli_py.Solver` solver object. This solver object can then be suppled a :class:`bacoli_py.ProblemDefinition` object, which defines the PDE system you wish to solve. Following these initialization steps, a call to the :class:`~Solver.solve` method can be made, computing a approximate solution returned within a :class:`bacoli_py.Evaluation` object.
 
-To define a new :class:`bacoli_py.BacoliPy` object, you may optionally supply its constructor with arguments controlling how the underlying PDE solver will work:
+To define a new :class:`bacoli_py.Solver` object, you may optionally supply its constructor with arguments controlling how the underlying PDE solver will work:
 
 |
 
 -------------------------------------
 
 ========
-BacoliPy
+Solver
 ========
 
-.. py:function:: bacoli_py.BacoliPy(nint_max=500, kcol=4, t_est='b', x_est='loi', maxord=None, ini_ss=None)
+.. py:function:: bacoli_py.Solver(nint_max=500, kcol=4, t_int='b', x_est='loi', maxord=None, ini_ss=None)
 
 Optional Arguments:
 -------------------
@@ -51,7 +51,7 @@ Optional Arguments:
 
 * *kcol* - The number of collocation points per spatial subinterval. Default value is 4.
 
-* *t_est* - Specifies what kind of method will be used in time integration. 'b' for a variable order BDF method, 'r' for a 5th order Runge-Kutta method.
+* *t_int* - Specifies what kind of method will be used in time integration. 'b' for a variable order BDF method, 'r' for a 5th order Runge-Kutta method.
 
 * *x_est* - Specifies the spatial error estimation scheme used by BACOLI. 'loi' for a lower order interpolation scheme (LOI) and 'sci' for a superconvergant interpolation scheme (SCI). Default value is 'loi'.
 
@@ -103,7 +103,7 @@ Optional Arguments:
 
 |
 
-Once the ProblemDefinition object has been created, :mod:`bacoli_py` can now be used to solve this system. This is done using the :class:`BacoliPy.solve` method:
+Once the ProblemDefinition object has been created, :mod:`bacoli_py` can now be used to solve this system. This is done using the :class:`Solver.solve` method:
 
 |
 
@@ -113,7 +113,7 @@ Once the ProblemDefinition object has been created, :mod:`bacoli_py` can now be 
 solve
 =====
 
-.. py:function:: BacoliPy.solve(problem_definition, initial_time, initial_mesh, tspan, xspan, atol=1e-6, rtol=1e-6, dirichlet=False, tstop=None, deriv=False)
+.. py:function:: Solver.solve(problem_definition, initial_time, initial_mesh, tspan, xspan, atol=1e-6, rtol=1e-6, dirichlet=False, tstop=None, vec=True, deriv=False)
 
 Computes an error controlled numerical numerical solution for a given system of PDE's at specified points in space and time.
 
@@ -140,23 +140,25 @@ Optional Arguments:
 
 * *tstop* - Scalar value specifying the absolute end of the temporal domain.
 
-* *deriv* - Boolean value indicating whether solution derivative values are to be returned at the requested output points in the Solution object.
+* *vec* - Boolean value indicating whether vectorization should be used to increase efficiency. Should only be set to False when compiled Fortran routines are being provided for the callback functions. Otherwise, vec should be set to True.
+
+* *deriv* - Boolean value indicating whether solution derivative values are to be returned at the requested output points in the Evaluation object.
 
 ----------------------------------------
 
 |
 
-:class:`BacoliPy.solve` produces a :class:`bacoli_py.Solution` object containing the solutions of each PDE in the system at each output points and output time. These values may be accessed directly from the :class:`Solution.u` property.
+:class:`Solver.solve` produces a :class:`bacoli_py.Evaluation` object containing the solutions of each PDE in the system at each output points and output time. These values may be accessed directly from the :class:`Evaluation.u` attribute.
 
 |
 
 ----------------------------------------
 
-=========
-Solution
-=========
+==========
+Evaluation
+==========
 
-.. py:function:: bacoli_py.Solution(self, tspan, xspan, u, ux=None)
+.. py:function:: bacoli_py.Evaluation(self, tspan, xspan, u, ux=None)
 
 Object containing solution from call to :class:`bacoli_py.solve`.
 
@@ -215,9 +217,9 @@ First we import :mod:`bacoli_py`, numpy, as well as numpy.array and numpy.exp::
     from numpy import array
     from numpy import exp
 
-Now create a :class:`BacoliPy` object. We choose the optional parameter nint_max = 1000 to increase the maximum allowable number of spatial subintervals::
+Now create a :class:`Solver` object. We choose the optional parameter nint_max = 1000 to increase the maximum allowable number of spatial subintervals::
 
-    solver = bacoli_py.BacoliPy()
+    solver = bacoli_py.Solver()
 
 
 Initialization of problem-dependent parameters::
@@ -313,7 +315,7 @@ We now have everything we require for solving this system. We choose output poin
     xspan = numpy.linspace(-2, 2, 100)
 
     # Solve this system for each output time and point.
-    solution = solver.solve(problem_definition, initial_time, initial_mesh,
+    evaluation = solver.solve(problem_definition, initial_time, initial_mesh,
                                       tspan, xspan)
 
 To plot the first component of the solution::
@@ -325,11 +327,11 @@ To plot the first component of the solution::
     import matplotlib.pyplot as plt
 
     # Plot all all times on same graph.
-    plt.plot(xspan, solution.u[0,0,:])
-    plt.plot(xspan, solution.u[0,1,:])
-    plt.plot(xspan, solution.u[0,2,:])
-    plt.plot(xspan, solution.u[0,3,:])
-    plt.plot(xspan, solution.u[0,4,:])
+    plt.plot(xspan, evaluation.u[0,0,:])
+    plt.plot(xspan, evaluation.u[0,1,:])
+    plt.plot(xspan, evaluation.u[0,2,:])
+    plt.plot(xspan, evaluation.u[0,3,:])
+    plt.plot(xspan, evaluation.u[0,4,:])
 
     plt.legend(['t=0', 't=5', 't=10', 't=15', 't=40'])
 

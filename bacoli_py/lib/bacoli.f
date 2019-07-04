@@ -42,9 +42,9 @@ c       been vectorized.
 
 
       subroutine bacoli(t0, tout, atol, rtol, npde, kcol, nintmx, nint,
-     &                  x, mflag, rpar, lrp, ipar, lip, y, idid,
+     &                  x, mflag, rpar, lrp, ipar, lip, y, idid, f,
      &                  fvec, derivf, bndxa, difbxa, bndxb, difbxb, 
-     &                  uinit, uinitvec)
+     &                  uinit, uinitvec, vec)
 
 c-----------------------------------------------------------------------
 c Purpose:
@@ -388,6 +388,7 @@ c                               work array and must satisfy:
 c                               lip>=115+npde*(nintmx*kcol+2)
 c
         external                fvec
+        external                f
         external                derivf
         external                bndxa
         external                difbxa
@@ -1170,6 +1171,9 @@ c Subroutines Passed to DASSL:
         external                res
 c
 c-----------------------------------------------------------------------
+C       BACOLIVEC
+        logical                 vec
+c-----------------------------------------------------------------------
 c Subroutines Called:
 c                               colpnt
 c                               ddassl
@@ -1470,16 +1474,18 @@ c         Modified to allow vectorized uinit calls
 
 c     BACOLI --> BACOLIVEC
 c         Modified to allow call to vectorized routines.
+C       write(*,*) 'calling iniyp'
       call iniyp(t0, npde, kcol, nint, neq, ncpts,
      &           rpar(ipar(ixcol)), rpar(ipar(iabtop)),
      &           rpar(ipar(iabblk)), rpar(ipar(iabbot)),
      &           rpar(ipar(ibasi)), rpar(ipar(iy)), rpar(ipar(iyp)),
      &           ipar(ipivot), rpar(ipar(irwork)), lenin, icflag,
-     &           mflag(9), fvec, bndxa, difbxa, bndxb, difbxb)
+     &           mflag(9), f, fvec, bndxa, difbxa, bndxb, difbxb, vec)
 
       if (icflag .ne. 0) then
          goto 620
       endif
+C       write(*,*) 'leaving iniyp'
 
       irshfg = 0
 
@@ -1624,13 +1630,14 @@ c     cold start.
          call dcopy(neq, rpar(ipar(irwork)+40), 1, rpar(ipar(iy)), 1)
 c     BACOLI --> BACOLIVEC
 c         Modified to allow call to vectorized routines.
+C       write(*,*) 'calling iniyp'
          call iniyp(t0, npde, kcol, nint, neq, ncpts,
      &              rpar(ipar(ixcol)), rpar(ipar(iabtop)),
      &              rpar(ipar(iabblk)), rpar(ipar(iabbot)),
      &              rpar(ipar(ibasi)), rpar(ipar(iy)),
      &              rpar(ipar(iyp)), ipar(ipivot),
      &              rpar(ipar(irwork)), lenin, icflag,
-     &              mflag(9), fvec, bndxa, difbxa, bndxb, difbxb)
+     &              mflag(9), f, fvec, bndxa, difbxa, bndxb, difbxb)
          if (icflag .ne. 0) then
             goto 630
          endif
@@ -1639,6 +1646,7 @@ c        the DASSL floating point work array with the value of tstop.
          if (mflag(3) .eq. 1) rpar(ipar(irwork)) = rpar(itstop)
          goto 320
       endif
+C       write(*,*) 'leaving iniyp'
 
 c     Second set of initializations removed.
 
@@ -1676,7 +1684,7 @@ c-----------------------------------------------------------------------
      &            tout, ipar(iinfo), rpar(ipar(itrtol)),
      &            rpar(ipar(itatol)), idid, rpar(ipar(irwork)), lenrw,
      &            ipar(iiwork), leniw, rpar, ipar, jac,
-     &            fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     &            f, fvec, derivf, bndxa, difbxa, bndxb, difbxb, vec)
 
 c-----------------------------------------------------------------------
 c     Check for a successful time step and decide whether to continue
@@ -3762,7 +3770,8 @@ c-----------------------------------------------------------------------
       subroutine iniyp(t0, npde, kcol, nint, neq, ncpts, xcol,
      &                 abdtop, abdblk, abdbot, fbasis, y, yprime,
      &                 ipivot, work, lw, icflag,
-     &                 ifgfdj, fvec, bndxa, difbxa, bndxb, difbxb)
+     &                 ifgfdj, f, fvec, bndxa, difbxa, bndxb, difbxb,
+     &                 vec)
 
 c-----------------------------------------------------------------------
 c Purpose:
@@ -3927,6 +3936,9 @@ c                               the second spatial derivative of u(t,x).
 c       BACOLI --> BACOLIVEC
         integer                 swapiuxx
 c
+c       BACOLI --> BACOLIVEC
+        logical                 vec
+c
         integer                 idbdu
 c                               work(idbdu-1+i), i=1, npde*npde,
 c                               contains dbdu(npde,npde). That is,
@@ -4063,40 +4075,49 @@ c     Set up the top block and save in abdtop.
 
 c-----------------------------------------------------------------------
 c     BACOLI --> BACOLIVEC
-c         Need to make this conditional in final version.
 c     Generate the right side of ODEs at the collocation points
 c     and save in yprime(i), i = npde + 1, neq - npde.
-c      do 140 i = 1, nint
+C       write(*,*) '.not. vec'
+C       write(*,*) .not. vec
+      if (.not. vec) then
+        ! Not using vectorization
+C         write(*,*) 'not vectorized'
+
+      do 141 i = 1, nint
 
 c        ii is the value of ileft for the current collocation point.
-c         ii = kcol + nconti + (i - 1) * kcol
+         ii = kcol + nconti + (i - 1) * kcol
 
-c         do 130 j = 1, kcol
+         do 131 j = 1, kcol
 
 c           jj is the index of the current collocation point.
-c            jj = (i - 1) * kcol + j + 1
+            jj = (i - 1) * kcol + j + 1
 
 c           mm is the pointer of yprime.
-c            mm = (jj - 1) * npde + 1
+            mm = (jj - 1) * npde + 1
 
 c           Generate the approximate solution and its spatial
 c           derivatives at the current collocation point.
-c            call eval(npde,kcol,ii,jj,ncpts,work(iu),work(iux),
-c     &                work(iuxx),fbasis(1,1,jj),y)
+            call eval(npde,kcol,ii,jj,ncpts,work(iu),work(iux),
+     &                work(iuxx),fbasis(1,1,jj),y)
 
 c           Evaluate the function f defining the PDE at the current
 c           collocation point, storing the result in yprime.
-c            call f(t0,xcol(jj),work(iu),work(iux),work(iuxx),yprime(mm),
-c     &             npde)
+            call f(t0,xcol(jj),work(iu),work(iux),work(iuxx),yprime(mm),
+     &             npde)
 
-c  130    continue
-c  140 continue
+  131    continue
+  141 continue
 
 c BACOLI --> BACOLIVEC
 c     Modified user routine call.
 c     Just an idea right now: put it in its final form then worry about
 c     making the arrays work.
 c BACOLI --> BACOLIVEC
+
+      else
+c     Using vectorization
+C         write(*,*) 'vectorized'
 
       do 140 i = 1, nint
 
@@ -4153,7 +4174,7 @@ c     BACOLI --> BACOLIVEC
 c     Copy all of the yprime values into the swap memory
       call dcopy(vnpts*npde, yprime(npde+1), 1, work(swapiu), 1)
 
-c     Put the points all in back in their place.
+c     Put the points all in back in their place.
       do 301 i = 1, vnpts
           do 311 j = 1, npde
               yprime(npde+npde*(i-1)+j)=work(swapiu+(j-1)*nint*kcol+i-1)
@@ -4168,6 +4189,7 @@ c                 work(iu + voffset) =
 c  220         continue
 c 210     continue
 c 200 continue
+      end if
 
 c-----------------------------------------------------------------------
 c     Update the values at the right boundary.
@@ -5588,7 +5610,7 @@ c-----------------------------------------------------------------------
       end
 
       subroutine res(t, y, yprime, delta, ires, rpar, ipar,
-     &               fvec, bndxa, bndxb)
+     &               f, fvec, bndxa, bndxb, vec)
 
 c-----------------------------------------------------------------------
 c Purpose:
@@ -5634,10 +5656,13 @@ c
         integer                 ipar(*)
 c                               rpar is the BACOLI integer work array.
 c
+        external                f
         external                fvec
         external                bndxa
         external                bndxb
 c                               refer to the preamble of BACOLI.
+
+        logical                 vec
 c
 c       Output:
         integer                 ires
@@ -5735,7 +5760,7 @@ c     Calculate residual for dassl.
       call calres(npde, kcol, nint, ncpts, neq, rpar(ipar(ixcol)),
      &            rpar(ipar(iabblk)), rpar(ipar(ibasi)), t, y,
      &            yprime, rpar(ipar(iwkrj)), delta,
-     &            fvec, bndxa, bndxb)
+     &            f, fvec, bndxa, bndxb, vec)
 
 c     Second call to calres removed.
 
@@ -5744,7 +5769,7 @@ c     Second call to calres removed.
 
       subroutine calres(npde, kcol, nint, ncpts, neq, xcol, abdblk,
      &                  fbasis, t, y, yprime, work, delta,
-     &                  fvec, bndxa, bndxb)
+     &                  f, fvec, bndxa, bndxb, vec)
 
 c-----------------------------------------------------------------------
 c Purpose:
@@ -5829,6 +5854,7 @@ c
 c                               yprime is the derivative of y with
 c                               respect to time at the current time.
 c
+        external                f
         external                fvec
         external                bndxa
         external                bndxb
@@ -5888,6 +5914,9 @@ c                               work(iuxx) stores the approximation to
 c                               the second spatial derivative of u(t,x).
 c       BACOLI --> BACOLIVEC
         integer                 swapiuxx
+
+c       BACOLI --> BACOLIVEC
+        logical                 vec
 c
 c-----------------------------------------------------------------------
 c Subroutines Called:
@@ -5919,6 +5948,46 @@ c     Initialize the residual to the zero vector.
 
 c-----------------------------------------------------------------------
 c     Loop over the nint blocks of collocation equations.
+c     NON-VECTORIZED
+
+      if (.not. vec) then
+
+      do 31 i = 1, nint
+
+c        ii is the value of ileft for the current collocation point.
+         ii = kcol + nconti + (i - 1) * kcol
+
+         do 21 j = 1, kcol
+
+c           jj is the pointer of collocation point.
+            jj = (i - 1) * kcol + j + 1
+
+c           mm is the pointer of delta.
+            mm = (jj - 1) * npde + 1
+
+c           kk is the pointer of the basis function values at
+c           the current collocation point.
+            kk =(jj-1)*(kcol+nconti)*3+1
+
+c           Generate the approximate solution and its spatial
+c           derivatives at the current collocation point.
+            call eval(npde,kcol,ii,jj,ncpts,work(iu),work(iux),
+     &                work(iuxx),fbasis(kk),y)
+
+c           Evaluate the function f defining the PDE at the current
+c           collocation point, storing the result in delta.
+            call f(t, xcol(jj), work(iu), work(iux),
+     &              work(iuxx), delta(mm), npde)
+
+   21    continue
+   31 continue
+
+
+C     VECTORIZED
+c-----------------------------------------------------------------------
+c     Loop over the nint blocks of collocation equations.
+
+      else
 
       do 30 i = 1, nint
 
@@ -5974,14 +6043,14 @@ c     &              work(iuxx), delta(mm), npde)
 c     Copy all of the yprime values into the swap memory
       call dcopy(nint*kcol*npde, delta(npde+1), 1, work(swapiu), 1)
 
-c     Put the points all in back in their place.
+c     Put the points all in back in their place.
       do 201 i = 1, nint*kcol
           do 211 j = 1, npde
               delta(npde+npde*(i-1)+j)=work(swapiu+(j-1)*nint*kcol+i-1)
   211     continue
   201 continue
 
-c     Put the points all in back in their place.
+c     Put the points all in back in their place.
 c      do 200 i = 1, vnpts 
 c          do 210 j = 1, npde
 cc         seems like the indexing is wrong here
@@ -5992,6 +6061,8 @@ c              delta(npde*i+j)=work(swapiu+(j-1)*nint*kcol+i
 c     &                -1)
 c  210     continue
 c  200 continue
+     
+      end if
 
 c     Scale (delta(i), i=npde+1,npde*(ncpts-1)) with negative one.
       call dscal(npde*kcol*nint, negone, delta(npde+1), 1)

@@ -122,7 +122,7 @@ python module bacoli_interface ! in
                 logical intent(in) :: is_tstop
                 integer intent(out) :: idid
             end subroutine initialize
-            subroutine solve(tout,f,fvec,bndxa,bndxb,uinit,derivf,is_derivf,difbxa,is_difbxa,difbxb,is_difbxb,idid) ! in :bacoli_interface:bacoli_interface.f95:bacoli_interface
+            subroutine solve(tout,f,fvec,bndxa,bndxb,uinit,derivf,is_derivf,difbxa,is_difbxa,difbxb,is_difbxb,idid,vec) ! in :bacoli_interface:bacoli_interface.f95:bacoli_interface
                 use bacoli__user__routines
                 double precision intent(in) :: tout
                 external f
@@ -137,6 +137,7 @@ python module bacoli_interface ! in
                 external difbxb
                 logical intent(in) :: is_difbxb
                 integer intent(out) :: idid
+                logical intent(in) :: vec
             end subroutine solve
             subroutine vals(u,ux,npde,xspan_size,nderiv) ! in :bacoli_interface:bacoli_interface.f95:bacoli_interface
                 double precision dimension(npde,xspan_size),intent(out),depend(npde,xspan_size) :: u

@@ -1,7 +1,7 @@
       subroutine bacolri(t0, tout, atol, rtol, npde, kcol, nintmx, nint,
      &                   x, mflag, rpar, lrp, ipar, lip, cpar, lcp, y,
      &                   idid, f, fvec, derivf, bndxa, difbxa, bndxb,
-     &                   difbxb, uinit, uinitvec)
+     &                   difbxb, uinit, uinitvec, vec)
 
 c-----------------------------------------------------------------------
 c Purpose:
@@ -195,6 +195,8 @@ c
         integer                 mflag(12)
 c       This vector determines the interaction of BACOLRI with RADAU5
 c       and which error estimation scheme BACOLRI will employ.
+c BACOLRI --> BACOLRIVEC
+        logical vec
 c
 c       How to set mflag(1):
 c
@@ -1106,7 +1108,7 @@ c      write(*,*) 'calling radau5'
      &            rpar(ipar(irwork)), lenrw, ipar(iiwork), leniw, rpar,
      &            ipar, cpar, idid, f, fvec, derivf, bndxa, difbxa,
      &            bndxb,
-     &            difbxb, uinit)
+     &            difbxb, uinit, vec)
 c      write(*,*) 'leaving radau5'
 
 c-----------------------------------------------------------------------
@@ -1284,7 +1286,7 @@ c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
       end
       subroutine calfcn(npde, kcol, nint, ncpts, neq, xcol, fbasis,
-     &                      t, y, work, fr, f, fvec, bndxa, bndxb)
+     &                      t, y, work, fr, f, fvec, bndxa, bndxb, vec)
 
 c-----------------------------------------------------------------------
 c Purpose:
@@ -1405,6 +1407,7 @@ c                               vectorized f user routine must evaluate
         integer                 voffset
 c                               Offset into work arrays for vectorized
 c                               BACOLRI
+        logical                 vec
 c-----------------------------------------------------------------------
 c Subroutines Called:
 c                               bndxa
@@ -1424,6 +1427,44 @@ c     BACOLRI --> BACOLRIVEC
       swapiu   = iuxx    + npde
       swapiux  = swapiu  + npde*vnpts
       swapiuxx = swapiux + npde*vnpts
+
+C     UNVECTORIZED
+c-----------------------------------------------------------------------
+c     Loop over the nint blocks of collocation equations.
+      if (.not. vec) then
+
+      do 21 i = 1, nint
+
+c        ii is the value of ileft for the current collocation point.
+         ii = kcol + nconti + (i - 1) * kcol
+
+         do 11 j = 1, kcol
+
+c           jj is the pointer of collocation point.
+            jj = (i - 1) * kcol + j + 1
+
+c           mm is the pointer of fr.
+            mm = (jj - 1) * npde + 1
+
+c           kk is the pointer of the basis function values at
+c           the current collocation point.
+            kk =(jj-1)*(kcol+nconti)*3+1
+
+c           Generate the approximate solution and its spatial
+c           derivatives at the current collocation point.
+            call eval(npde,kcol,ii,jj,ncpts,work(iu),work(iux),
+     &                work(iuxx),fbasis(kk),y)
+
+c           Evaluate the function defining the PDE at the current
+c           collocation point, storing the result in fr.
+            call f(t, xcol(jj), work(iu), work(iux),
+     &              work(iuxx), fr(mm), npde)
+
+   11    continue
+   21 continue
+
+c     VECTORIZED
+      else
 
 c-----------------------------------------------------------------------
 c     Loop over the nint blocks of collocation equations.
@@ -1483,6 +1524,8 @@ c     Put the points all in back in their place.
               fr(npde+npde*(i-1)+j)=work(swapiu+(j-1)*vnpts+i-1)
   211     continue
   201 continue
+
+      end if
 c-----------------------------------------------------------------------
 c     Calculate (fr(i), i=1, npde), which depend on the left
 c     boundary point.
@@ -3461,7 +3504,7 @@ c     Define the collocation point sequence.
       return
       end
       subroutine radfcn(neq, t, y, fr, rpar, ipar, f, fvec, derivf,
-     &                  bndxa, bndxb)
+     &                  bndxa, bndxb, vec)
 
 c-----------------------------------------------------------------------
 c Purpose:
@@ -3554,6 +3597,9 @@ c Local variables:
         integer                 kcol
         integer                 nint
         integer                 ncpts
+c-----------------------------------------------------------------------
+c BACOLRI --> BACOLRIVEC
+        logical                 vec
 c
 c-----------------------------------------------------------------------
 c Subroutines Called:
@@ -3569,7 +3615,7 @@ c-----------------------------------------------------------------------
 c     Calculate the right side of the DAEs for radau_kcol.
       call calfcn(npde, kcol, nint, ncpts, neq, rpar(ipar(ixcol)),
      &            rpar(ipar(ibasi)), t, y, rpar(ipar(iwkrj)), fr,
-     &            f, fvec, bndxa, bndxb)
+     &            f, fvec, bndxa, bndxb, vec)
 
       return
       end
