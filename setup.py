@@ -1,17 +1,14 @@
 # Authors: Connor Tannahill <ctannahill3@gmail.com> and Paul Muir, 2019
 
 from setuptools import setup, Extension
-# from distutils.core import setup
 from numpy.distutils.core import setup, Extension
 from numpy.distutils.misc_util import Configuration
-from sphinx.setup_command import BuildDoc as SphinxBuildDoc
 
 
 descr = """
-bacoli_py is a Python package for solving systems of 1D Parabolic
-Partial Differential Equations. Wraps a slightly modified version of BACOLI
-(see http://cs.stmarys.ca/~muir/BACOLI-3_Webpage.htm) and BACOLRI. Tutorial,
-documentation and examples can be found at https://bacoli-py.readthedocs.io/en/latest/.
+bacoli_py is a Python package for the error controlled numerical solution of 1D time-dependent PDEs. Wraps a slightly modified version of the BACOLI
+(see http://cs.stmarys.ca/~muir/BACOLI-3_Webpage.htm) and BACOLRI solvers, written in Fortran. A tutorial,
+documentation, and examples can be found at https://bacoli-py.readthedocs.io/en/latest/.
 
 For any questions or suggestions please email Connor Tannahill at
 ctannahill3@gmail.com
@@ -19,7 +16,7 @@ ctannahill3@gmail.com
 
 VERSION             = '1.0'
 DISTNAME            = 'bacoli_py'
-DESCRIPTION         = 'Python Package for Solving 1D PDEs'
+DESCRIPTION         = 'Python package for the error controlled numerical solution to 1D time-dependent PDEs'
 LONG_DESCRIPTION    = descr
 URL                 = 'https://pypi.org/project/bacoli_py/'
 LICENSE             = 'BSD License'
