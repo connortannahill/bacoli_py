@@ -1,16 +1,19 @@
 # Authors: Connor Tannahill <ctannahill3@gmail.com> and Paul Muir, 2019
 
+from setuptools import setup, Extension
+# from distutils.core import setup
 from numpy.distutils.core import setup, Extension
 from numpy.distutils.misc_util import Configuration
 from sphinx.setup_command import BuildDoc as SphinxBuildDoc
 
-descr = """\
+
+descr = """
 bacoli_py is a Python package for solving systems of 1D Parabolic
 Partial Differential Equations. Wraps a slightly modified version of BACOLI
 (see http://cs.stmarys.ca/~muir/BACOLI-3_Webpage.htm) and BACOLRI. Tutorial,
-documentation and examples can be found at http://pypi.python.org/pypi/bacoli_py.
+documentation and examples can be found at https://bacoli-py.readthedocs.io/en/latest/.
 
-For any questions, suggestions or suggestions please email Connor Tannahill at
+For any questions or suggestions please email Connor Tannahill at
 ctannahill3@gmail.com
 """
 
@@ -18,10 +21,10 @@ VERSION             = '1.0'
 DISTNAME            = 'bacoli_py'
 DESCRIPTION         = 'Python Package for Solving 1D PDEs'
 LONG_DESCRIPTION    = descr
-MAINTAINER          = 'Connor Tannahill',
-MAINTAINER_EMAIL    = 'ctannahill3@gmail.com',
-URL                 = '**Needed'
-LICENSE             = 'BSD Liscense'
+URL                 = 'https://pypi.org/project/bacoli_py/'
+LICENSE             = 'BSD License'
+AUTHOR              = 'Connor Tannahill and Paul Muir'
+AUTHOR_EMAIL        = 'ctannahill3@gmail.com'
 DOWNLOAD_URL        = URL
 EXTRA_INFO          = dict(
     install_requires=['numpy'],
@@ -36,14 +39,18 @@ EXTRA_INFO          = dict(
 
 def configuration(parent_package='', top_path=None):
     config = Configuration(DISTNAME, parent_package, top_path, 
-                           packages = ['bacoli_py'],
                            version = VERSION,
-                           maintainer = MAINTAINER,
-                           maintainer_email = MAINTAINER_EMAIL,
+                           author = AUTHOR,
+                           author_email = AUTHOR_EMAIL,
                            description = DESCRIPTION,
                            license = LICENSE,
-                           url = URL,
-                           long_description = LONG_DESCRIPTION)
+                           url = URL)
+                           # long_description = LONG_DESCRIPTION,
+                           # long_description_content_type='text/plain')
+
+    config.add_data_files('LICENSE.txt')
+    config.add_data_files('bacoli_py/lib/BACOLI-LICENSE.txt')
+    config.add_data_files('bacoli_py/lib/BACOLRI-LICENSE.txt')
     return config
 
 bacoli_interface = Extension('bacoli_interface',
@@ -56,9 +63,7 @@ bacoli_interface = Extension('bacoli_interface',
                                   'bacoli_py/lib/bacoli_interface.pyf'])
 
 setup(configuration=configuration,
-    name='bacoli_py',
-    version='1.0dev',
-    packages=['bacoli_py'],
+    version='1.0',
     license='needed',
     long_description=open('README.txt').read(),
     ext_modules=[bacoli_interface]

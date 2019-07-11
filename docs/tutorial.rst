@@ -95,9 +95,9 @@ Optional Arguments:
 
 * *derivf(t, x, u, ux, uxx, dfdu, dfdux, dfduxx)* - A callback function specifying the partial derivatives of f with respect to u, ux, and uxx in analytic Jacobian matrices. Returns the (npde) x (npde) matrices dfdu, dfdux, and dfduxx
 
-* *difbxa(t, u, ux, dbdu, dbdux, dbdt)* - A callback function specifiying the differentiated boundary conditions at the left spatial endpoint with respect to u, ux, and t. Returns the (npde) x (npde) matrices dbdu and dbdux, as well as the array dbdt as size npde
+* *difbxa(t, u, ux, dbdu, dbdux, dbdt)* - A callback function specifying the differentiated boundary conditions at the left spatial endpoint with respect to u, ux, and t. Returns the (npde) x (npde) matrices dbdu and dbdux, as well as the array dbdt as size npde
 
-* *difbxb(t, u, ux, dbdu, dfdux, dbdt)* - A callback function specifiying the differentiated boundary conditions at the right spatial endpoint with respect to u, ux, and t. Returns the (npde) x (npde) matrices dbdu and dbdux, as well as the array dbdt as size npde
+* *difbxb(t, u, ux, dbdu, dfdux, dbdt)* - A callback function specifying the differentiated boundary conditions at the right spatial endpoint with respect to u, ux, and t. Returns the (npde) x (npde) matrices dbdu and dbdux, as well as the array dbdt as size npde
 
 ----------------------------------------
 
