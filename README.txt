@@ -11,7 +11,7 @@ For any questions, suggestions or suggestions please email Connor Tannahill at
 ctannahill3@gmail.com
 
 
-Installation from sources
-=========================
+Installation from source
+========================
 
     pip install ./bacoli_py
