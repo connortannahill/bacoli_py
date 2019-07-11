@@ -1,4 +1,4 @@
-! Copyright (c) 2019, Connor Tannahill, Jack Pew
+! Copyright (c) 2019, Connor Tannahill, Paul Muir
 ! Connor Tannahill, Mathematics and Computing Science, Saint Mary's University
 ! Paul Muir, Mathematics and Computing Science, Saint Mary's University.
 ! All rights reserved.
