@@ -5,6 +5,8 @@ Welcome
 
 :mod:`bacoli_py` is a python package for the error controlled numerical solution of 1D Parabolic PDE's. This software was built on top of modified versions of the `BACOLI <http://cs.stmarys.ca/~muir/BACOLI-3_Webpage.htm>`_ and BACOLRI Fortran packages. For any questions or comments, please email ctannahill3@gmail.com
 
+A formal introduction to :mod:`bacoli_py` is given in the report: :download:`report <BacoliPy_Report.pdf>`.
+
 Contents
 --------
 
