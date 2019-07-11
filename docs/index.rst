@@ -20,7 +20,7 @@ Installing and Starting with bacoli_py
 
 Installation requires you to have the gfortran compiler (other Fortran compilers may work as well but this has not been tested). To install :mod:`bacoli_py` and all its dependencies type "pip install bacoli_py" at the command line.
 
-:mod:`bacoli_py` is available through <insert PyPi link>. Documentation and a tutorial are available `here <tutorial.html>`__.
+:mod:`bacoli_py` is available through `PyPi <http://pypi.python.org/pypi/bacoli_py>`__. Documentation and a tutorial are available `here <tutorial.html>`__.
 
 Source Code
 -----------
