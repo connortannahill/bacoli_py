@@ -6,6 +6,7 @@ bacoli_py/Evaluation.py
 bacoli_py/ProblemDefinition.py
 bacoli_py/Solver.py
 bacoli_py/__init__.py
+bacoli_py/lib/BACOLI-LICENSE.txt
 bacoli_py/lib/BACOLRI-LICENSE.txt
 bacoli_py/lib/bacoli-aux.f
 bacoli_py/lib/bacoli.f

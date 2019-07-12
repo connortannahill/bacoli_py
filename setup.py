@@ -12,7 +12,7 @@ for any questions or suggestions please email Connor Tannahill at
 ctannahill3@gmail.com
 """
 
-version             = '1.0'
+version             = '1.0.0'
 distname            = 'bacoli_py'
 description         = 'Python package for the error controlled numerical solution to 1D time-dependent PDEs'
 long_description    = descr
@@ -42,7 +42,7 @@ def configuration(parent_package='', top_path=None):
 
 
     config.add_data_files('LICENSE.txt')
-    config.add_data_files('bacoli_py/lib/BACOLRI-LICENSE.txt')
+    config.add_data_files('bacoli_py/lib/BACOLI-LICENSE.txt')
     config.add_data_files('bacoli_py/lib/BACOLRI-LICENSE.txt')
 
     return config
