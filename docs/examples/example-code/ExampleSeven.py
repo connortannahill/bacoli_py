@@ -1,4 +1,4 @@
-# Solving One Layer Burgers Equations.
+# Solving Two Layer Burgers Equations.
 # PDE: u_t = eps*u_xx - u*ux, with initial and boundary conditions
 # defined from the exact solution.
 # 
@@ -6,14 +6,23 @@
 # ------------------------------------------------------------------
 # This example is based off a FORTRAN analogue for the original 
 # BACOLI. The original can be found at:
-#   http://cs.stmarys.ca/~muir/BACOLI95-3_Source/3-Problems/burg1.f
+#   http://cs.stmarys.ca/~muir/BACOLI95-3_Source/3-Problems/burg2.f
 # ------------------------------------------------------------------
 
 """
+This file has two parts:
+    a) Generation of an extension module containing compiled Fortran callback
+       subroutines for use with bacoli_py.
+    b) Application of bacoli_py to solve a problem using these compiled routines.
+"""
+
+"""
+Part 1
+
 Creating and linking the Fortran callback functions
 """
-# import numpy.f2py as f2py
-# import sys
+import numpy.f2py as f2py
+import sys
 
 prob_def_f = """
       subroutine f(t, x, u, ux, uxx, fval)
@@ -101,12 +110,12 @@ prob_def_f = """
       end
 """
 
-# f2py.compile(prob_def_f, modulename='problemdef', verbose=0)
-
-# sys.exit()
+f2py.compile(prob_def_f, modulename='problemdef', verbose=0)
 
 """
-The program
+Part 2
+
+Using the compiled callback routines to solve the problem.
 """
 
 import bacoli_py
@@ -133,7 +142,6 @@ problem_definition = bacoli_py.ProblemDefinition(npde, f=f._cpointer,
 initial_time = 0.0
 
 # Define the initial spatial mesh.
-# initial_mesh = numpy.linspace(0, 1, 11)
 initial_mesh = [0, 1]
 
 # Choose output times and points.
