@@ -102,7 +102,7 @@ problem_definition = bacoli_py.ProblemDefinition(npde, f=f,
 initial_time = 0.0
 
 # Define the initial spatial mesh.
-initial_mesh = numpy.linspace(0, 1, 11)
+initial_mesh = [0, 1]
 
 # Choose output times and points.
 tspan = numpy.linspace(0.001, 1, 100)

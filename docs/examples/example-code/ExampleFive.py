@@ -75,8 +75,8 @@ initial_time = 0
 initial_mesh = numpy.linspace(-30, 90, 101)
 
 # Output points
-tspan = numpy.linspace(0.001, 50, 101)
-xspan = numpy.linspace(-30, 90, 101)
+tspan = numpy.linspace(0.001, 10, 100)
+xspan = numpy.linspace(-30, 90, 100)
 
 # Set a high level of error control.
 atol = 1.0e-6

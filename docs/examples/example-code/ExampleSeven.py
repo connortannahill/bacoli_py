@@ -110,7 +110,7 @@ prob_def_f = """
       end
 """
 
-f2py.compile(prob_def_f, modulename='problemdef', verbose=0)
+f2py.compile(prob_def_f.encode('ascii'), modulename='problemdef', verbose=0)
 
 """
 Part 2

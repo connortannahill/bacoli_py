@@ -8,7 +8,7 @@ Partial Differential Equations. Wraps a slightly modified version of BACOLI
 documentation and examples can be found at https://bacoli-py.readthedocs.io/en/latest/.
 Can be downloaded from PyPi at http://pypi.python.org/pypi/bacoli_py.
 
-For any questions, suggestions or suggestions please email Connor Tannahill at
+For any questions, comments or suggestions please email Connor Tannahill at
 ctannahill3@gmail.com
 
 

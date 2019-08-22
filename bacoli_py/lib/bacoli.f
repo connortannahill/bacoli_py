@@ -1341,7 +1341,7 @@ C         Modified array offsets for irwork.
       ipar(iwkrj)  = ipar(irwork) + lenrw + 3*npde*(kcol*nint+1)
 
 C     BACOLI --> BACOLIVEC
-C         Modified array offsets for iwkrj. Due to calls made to
+C         Modified array offsets for iwkrj. Due to calls made to
 c         caljac it seems. TODO: modify to 6*(prior modification)
       ipar(iexcol) = ipar(iwkrj)  + lenrj + 3*npde*(kcol*nint+1)
       ipar(iewts)  = ipar(iexcol) + necpts
