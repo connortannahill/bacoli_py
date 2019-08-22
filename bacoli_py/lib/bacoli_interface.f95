@@ -271,7 +271,7 @@ module bacoli_interface
             double precision              :: xa, xb
             double precision, allocatable :: wm(:), xi(:)
             integer                       :: ier, i
-            logical                       :: vec
+            logical, intent(in)           :: vec
  
             ! Set flags about whether or not to use finite differences.
             use_fd_both = (.not. is_derivf) .and. ((.not. is_difbxa) &
