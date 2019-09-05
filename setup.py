@@ -12,7 +12,7 @@ for any questions or suggestions please email Connor Tannahill at
 ctannahill3@gmail.com
 """
 
-version             = '1.0.0'
+version             = '1.0.1'
 distname            = 'bacoli_py'
 description         = 'Python package for the error controlled numerical solution to 1D time-dependent PDEs'
 long_description    = descr
