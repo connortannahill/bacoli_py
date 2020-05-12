@@ -113,7 +113,7 @@ Once the ProblemDefinition object has been created, :mod:`bacoli_py` can now be 
 solve
 =====
 
-.. py:function:: Solver.solve(problem_definition, initial_time, initial_mesh, tspan, xspan, atol=1e-6, rtol=1e-6, dirichlet=False, tstop=None, vec=True, deriv=False)
+.. py:function:: Solver.solve(problem_definition, initial_time, initial_mesh, tspan, xspan, atol=1e-6, rtol=1e-6, dirichlet=False, tstop=None, compiled_callbacks=False, deriv=False)
 
 Computes an error controlled numerical numerical solution for a given system of PDE's at specified points in space and time.
 
@@ -140,7 +140,7 @@ Optional Arguments:
 
 * *tstop* - Scalar value specifying the absolute end of the temporal domain.
 
-* *vec* - Boolean value indicating whether vectorization should be used to increase efficiency. Should only be set to False when compiled Fortran routines are being provided for the callback functions. Otherwise, vec should be set to True.
+* *compiled_callbacks* - Boolean value indicating whether or not compiled callback functions are being used within problem_definition.
 
 * *deriv* - Boolean value indicating whether solution derivative values are to be returned at the requested output points in the Evaluation object.
 

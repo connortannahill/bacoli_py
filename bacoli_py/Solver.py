@@ -131,8 +131,8 @@ class Solver:
             raise
 
     def solve(self, problem_definition, initial_time, initial_mesh, tspan,
-              xspan, atol=1e-4, rtol=1e-4, dirichlet=False, tstop=None, vec=True,
-              deriv=False):
+              xspan, atol=1e-4, rtol=1e-4, dirichlet=False, tstop=None,
+              compiled_callbacks=False, deriv=False):
         """Solves a system of Partial Differential Equations numerically.
 
         Parameters
@@ -158,9 +158,8 @@ class Solver:
         tstop : float
             Indicates the absolute end of the temporal domain. Used by BACOLI's
             underlying time integrator DASSL. Only used if t_int = 'b'.
-        vec   : bool
-            Indicates whether vectorization of the main user callback routine should
-            be done.
+        compiled_callbacks   : bool
+            Indicates whether compiled callbacks are given in problem_definition.
         deriv : bool
             Indicates that the returned Solution object should contain the first
             spatial derivative at each point.
@@ -199,8 +198,8 @@ class Solver:
                 raise
 
         # Validate vectorization flag
-        if not isinstance(vec, bool):
-            raise ValueError('vec must have type bool.')
+        if not isinstance(compiled_callbacks, bool):
+            raise ValueError('compiled_callbacks must have type bool.')
                 
         # Check that initial_mesh has >= 2 elements
         if len(initial_mesh) < 2:
@@ -316,7 +315,7 @@ class Solver:
 
         # Memory used to contain array slices in convernient format when
         # vectorization is to be used
-        if vec:
+        if not compiled_callbacks:
             u_sliced    = np.ndarray(shape=(npde), dtype=np.ndarray)
             ux_sliced   = np.ndarray(shape=(npde), dtype=np.ndarray)
             uxx_sliced  = np.ndarray(shape=(npde), dtype=np.ndarray)
@@ -383,7 +382,7 @@ class Solver:
                 is_difbxa=problem_definition.is_difbxa,
                 difbxb=problem_definition.difbxb,
                 is_difbxb=problem_definition.is_difbxb,
-                vec=vec)
+                vec=(not compiled_callbacks))
 
             if idid < 0:
                 raise RuntimeError("An error was raised during this computation.\n ")

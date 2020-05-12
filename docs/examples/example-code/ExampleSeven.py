@@ -150,7 +150,7 @@ xspan = numpy.linspace(0, 1, 100)
 
 # Solve this problem.
 evaluation = solver.solve(problem_definition, initial_time, initial_mesh,
-                           tspan, xspan, vec=False)
+                           tspan, xspan, compiled_callbacks=True)
 
 # Plotting these numerical results in 3D.
 import matplotlib as mpl
