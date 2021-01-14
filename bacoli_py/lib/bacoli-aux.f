@@ -1963,7 +1963,7 @@ C     EVALUATE THE ITERATION MATRIX
      *   IER,WT,E,WM,IWM,RES,IRES,
      *   UROUND,JAC,RPAR,IPAR,NTEMP,
 c-----------------------------------------------------------------------
-     *   f, fvec, derivf, bndxa, difbxa, bndxb, difbxb)
+     *   f, fvec, derivf, bndxa, difbxa, bndxb, difbxb, vec)
 c-----------------------------------------------------------------------
 C
       S=1000000.D0

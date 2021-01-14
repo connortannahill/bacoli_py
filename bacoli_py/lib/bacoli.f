@@ -1600,10 +1600,10 @@ C       write(*,*) 'calling iniyp'
          call iniyp(t0, npde, kcol, nint, neq, ncpts,
      &              rpar(ipar(ixcol)), rpar(ipar(iabtop)),
      &              rpar(ipar(iabblk)), rpar(ipar(iabbot)),
-     &              rpar(ipar(ibasi)), rpar(ipar(iy)),
-     &              rpar(ipar(iyp)), ipar(ipivot),
-     &              rpar(ipar(irwork)), lenin, icflag,
-     &              mflag(9), f, fvec, bndxa, difbxa, bndxb, difbxb)
+     &              rpar(ipar(ibasi)), rpar(ipar(iy)), rpar(ipar(iyp)),
+     &              ipar(ipivot), rpar(ipar(irwork)), lenin, icflag,
+     &              mflag(9), f, fvec, bndxa, difbxa, bndxb, difbxb,
+     &              vec)
          if (icflag .ne. 0) then
             goto 630
          endif
