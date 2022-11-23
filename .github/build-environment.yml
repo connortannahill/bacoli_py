@@ -1,0 +1,7 @@
+name: build
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - setuptools <60.0
+  - wheel

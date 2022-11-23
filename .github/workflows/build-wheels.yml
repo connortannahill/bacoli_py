@@ -1,0 +1,72 @@
+name: Build wheels for bacoli-py
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+  workflow_dispatch:
+
+jobs:
+  build-wheels:
+    name: ${{ matrix.os }} - Python ${{ matrix.python_version }}
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHON_VERSION: ${{ matrix.python_version }}
+      DISTDIR: ${{ github.workspace }}/dist
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version: ['3.10']
+        os: ['macos-latest', 'ubuntu-latest', 'windows-latest']
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Build Environment
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: ${{ github.workspace }}/.github/build-environment.yml
+          extra-specs: |
+            python=${{ matrix.python-version }}
+            sel(osx): delocate
+            sel(win): delvewheel
+
+      - name: Show Environment
+        run: |
+          micromamba info
+          micromamba list
+          gfortran --version
+
+      - name: Build Wheel
+        run: |
+          mkdir -p $DISTDIR
+          python -m pip wheel -v -w dist .
+          WHEEL=$(find $DISTDIR -name *.whl)
+          echo "WHEEL=$WHEEL" >> $GITHUB_ENV
+          echo "NAME=$(basename $WHEEL)" >> $GITHUB_ENV
+
+      - name: Delocate macOS Wheel
+        if: runner.os = 'macOS'
+        run: |
+          delocate-wheel -v $WHEEL
+          delocate-listdeps --all $WHEEL
+
+      - name: Delocate Windows Wheel
+        if: runner.os = 'Windows'
+        run: |
+          delvewheel repair -v -w $DISTDIR $WHEEL
+          delvewheel show $WHEEL
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.WHEEL }}
+          name: ${{ env.NAME }}
